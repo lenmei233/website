@@ -115,6 +115,24 @@ const verTag = stable?.tagName ?? pre?.tagName ?? ''
         <Icon name="lucide:download" class="size-4" />下载
       </a>
     </div>
+
+    <!-- Thank-you view -->
+    <div id="dl-thanks" class="hidden flex-col items-center py-4 text-center">
+      <div class="mb-3 flex size-14 items-center justify-center rounded-full bg-green-500/10">
+        <Icon name="lucide:check" class="size-7 text-green-500" />
+      </div>
+      <p class="mb-1 text-base font-semibold">下载已开始</p>
+      <p class="mb-1 text-xs text-muted-foreground">如果下载未自动开始，<a id="dl-retry" href="#" class="text-primary underline underline-offset-2">点击此处重试</a></p>
+      <p class="mb-5 text-xs text-muted-foreground">下载完成后，打开安装程序即可开始使用。</p>
+      <div class="flex w-full gap-2">
+        <a href="/docs/install" class="flex flex-1 items-center justify-center gap-1.5 rounded-xl border border-border bg-background px-4 py-2.5 text-sm font-medium transition-colors hover:bg-accent">
+          <Icon name="lucide:book-open" class="size-4" />安装指南
+        </a>
+        <button id="dl-thanks-close" class="flex flex-1 cursor-pointer items-center justify-center gap-1.5 rounded-xl bg-primary px-4 py-2.5 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90">
+          知道了
+        </button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -153,9 +171,19 @@ const verTag = stable?.tagName ?? pre?.tagName ?? ''
   var archSection = document.getElementById('dl-arch-section')
   var archContainer = document.getElementById('dl-archs')
   var linkSection = document.getElementById('dl-link-section')
+  var dlPlats = document.getElementById('dl-plats')
   var link = document.getElementById('dl-link')
+  var thanks = document.getElementById('dl-thanks')
+  var thanksClose = document.getElementById('dl-thanks-close')
+  var retry = document.getElementById('dl-retry')
 
   function openModal() {
+    thanks.classList.add('hidden')
+    thanks.classList.remove('flex')
+    dlPlats.style.display = ''
+    closeBtn.style.display = ''
+    archSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
+    linkSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
     overlay.classList.remove('opacity-0', 'pointer-events-none')
     setTimeout(function () { dialog.classList.remove('scale-95') }, 30)
     highlightPlat(detected.plat)
@@ -170,6 +198,10 @@ const verTag = stable?.tagName ?? pre?.tagName ?? ''
 
   function closeModal() {
     dialog.classList.add('scale-95')
+    thanks.classList.add('hidden')
+    thanks.classList.remove('flex')
+    dlPlats.style.display = ''
+    closeBtn.style.display = ''
     hideArchAndLink()
     setTimeout(function () { overlay.classList.add('opacity-0', 'pointer-events-none') }, 200)
   }
@@ -178,6 +210,17 @@ const verTag = stable?.tagName ?? pre?.tagName ?? ''
     archSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
     linkSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
     link.classList.add('hidden')
+  }
+
+  function showThanks() {
+    dlPlats.style.display = 'none'
+    closeBtn.style.display = 'none'
+    archSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
+    linkSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
+    link.classList.add('hidden')
+    thanks.classList.remove('hidden')
+    thanks.classList.add('flex')
+    retry.href = link.href
   }
 
   function highlightPlat(id) {
@@ -259,6 +302,8 @@ const verTag = stable?.tagName ?? pre?.tagName ?? ''
     })
   })
 
+  link.addEventListener('click', function (e) { e.preventDefault(); window.open(link.href, '_blank'); showThanks() })
+  thanksClose.addEventListener('click', closeModal)
   btn.addEventListener('click', openModal)
   closeBtn.addEventListener('click', closeModal)
   backdrop.addEventListener('click', closeModal)
