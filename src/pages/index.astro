@@ -6,7 +6,7 @@ import { getReleases, MIRRORS } from '../lib/releases.ts';
 const releases = await getReleases()
 const stable = releases.find(r => !r.prerelease)
 const pre = releases.find(r => r.prerelease)
-const tag = stable?.tagName ?? pre?.tagName ?? 'latest'
+const tag = stable?.tagName ?? pre?.tagName ?? ''
 
 const MIRROR_URL = MIRRORS.find(m => m.label === 'gh.lenmei233.top')?.url ?? ''
 
@@ -32,12 +32,12 @@ function ghUrl(tag: string, file: string): string {
   return file && tag ? `https://github.com/Qomicex-Public/Qomicex.Tauri/releases/download/${tag}/${file}` : ''
 }
 
-const verLabel = stable?.tagName ?? pre?.tagName ?? ''
-const versionDisplay = stable?.tagName
+const verDisplay = stable?.tagName
   ? `v${stable.tagName.replace(/^v/i, '')}`
   : pre?.tagName
     ? `v${pre.tagName.replace(/^v/i, '')} (测试版)`
     : ''
+const verTag = stable?.tagName ?? pre?.tagName ?? ''
 ---
 
 <Base>
@@ -47,121 +47,234 @@ const versionDisplay = stable?.tagName
 
       <img src="/high_logo.svg" alt="Qomicex Launcher" class="mb-6 w-full max-w-xs" />
 
-      {versionDisplay && (
-        <span class="mb-4 inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
+      {verDisplay && (
+        <span class="mb-4 fade-in inline-flex items-center gap-1.5 rounded-full border border-primary/20 bg-primary/5 px-3 py-1 text-xs font-medium text-primary">
           <Icon name="lucide:tag" class="size-3" />
-          {versionDisplay} · 基于 Tauri · 全平台
+          {verDisplay} · 基于 Tauri · 全平台
         </span>
       )}
 
       <p class="mb-8 max-w-sm text-sm text-muted-foreground">一个现代化的 Minecraft 启动器，拥有完善的多实例管理、快捷的模组安装、账户管理、多人联机、个性化主题设置等功能。完全开源，使用 GPL-3.0 许可协议。</p>
 
-      <!-- Platform tabs -->
-      <div class="mb-6 flex gap-1 rounded-xl bg-muted p-1">
-        {PLATFORMS.map((p, i) => (
-          <button data-plat={p.id} class={"tab-btn cursor-pointer rounded-lg px-5 py-2 text-sm font-medium transition-colors " + (i === 0 ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground')}>
-            <span class="flex items-center gap-1.5"><Icon name={p.icon} class="size-4" />{p.label}</span>
-          </button>
-        ))}
-      </div>
-
-      <!-- Platform panels -->
-      {PLATFORMS.map((p, pi) => {
-        const tagName = stable?.tagName ?? pre?.tagName ?? ''
-        const firstUrl = ghUrl(tagName, p.archs[0].file(tagName))
-        return (
-        <div id={"panel-" + p.id} class={"flex w-full flex-col items-center gap-4 " + (pi === 0 ? '' : 'hidden')}>
-          {p.archs.length > 1 && (
-            <div class="flex gap-2">
-              {p.archs.map((a, ai) => {
-                const url = ghUrl(tagName, a.file(tagName))
-                return (
-                  <button data-arch={a.label} class={"arch-btn cursor-pointer rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors " + (ai === 0 ? 'border-primary/40 bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:text-foreground')}>
-                    {a.label}
-                  </button>
-                )
-              })}
-            </div>
-          )}
-
-          <div class="flex w-full flex-col gap-3">
-            <a href={firstUrl || `https://github.com/Qomicex-Public/Qomicex.Tauri/releases/${tag}`} target="_blank" class="inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-xl bg-primary text-base font-medium text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/25">
-              <Icon name="lucide:download" class="size-5" />下载线路 1（GH 直连）
-            </a>
-            <a href={MIRROR_URL + firstUrl || `https://github.com/Qomicex-Public/Qomicex.Tauri/releases/${tag}`} target="_blank" class="inline-flex h-14 w-full items-center justify-center gap-2.5 rounded-xl border border-input bg-background text-base font-medium shadow-xs transition-all hover:bg-accent hover:text-accent-foreground">
-              <Icon name="lucide:zap" class="size-5" />下载线路 2（镜像）
-            </a>
-          </div>
-        </div>
-      )})}
+      <button id="dl-btn" class="inline-flex h-14 w-full max-w-xs cursor-pointer items-center justify-center gap-2.5 rounded-xl bg-primary text-base font-medium text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/25 active:scale-[0.98]">
+        <Icon name="lucide:download" class="size-5" />下载 Qomicex
+      </button>
+      <p class="mt-3 text-xs text-muted-foreground">支持 Windows · macOS · Linux</p>
     </div>
   </section>
-
-  <!-- Slim footer bar -->
-  <footer class="border-t border-border">
-    <div class="mx-auto flex max-w-5xl flex-wrap items-center justify-center gap-4 px-4 py-5 text-xs text-muted-foreground">
-      <span>Qomicex Launcher · GPL-3.0</span>
-      <span class="hidden sm:inline">·</span>
-      <a href="https://github.com/Qomicex-Public" target="_blank" class="inline-flex items-center gap-1 hover:text-foreground"><Icon name="fa6-brands:github" class="size-3.5" />GitHub</a>
-      <a href="https://qm.qq.com/q/rKiwzrkg8w" target="_blank" class="inline-flex items-center gap-1 hover:text-foreground"><Icon name="lucide:message-circle" class="size-3.5" />QQ 群</a>
-      <a href="/about" class="hover:text-foreground">关于</a>
-    </div>
-  </footer>
 </Base>
 
-<script data-astro-rerun>
-  // tab switching
-  document.querySelectorAll('.tab-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      var plat = this.getAttribute('data-plat')
-      document.querySelectorAll('[id^="panel-"]').forEach(function (el) { el.classList.add('hidden') })
-      document.getElementById('panel-' + plat)?.classList.remove('hidden')
-      document.querySelectorAll('.tab-btn').forEach(function (b) {
-        b.className = 'tab-btn cursor-pointer rounded-lg px-5 py-2 text-sm font-medium transition-colors text-muted-foreground hover:text-foreground'
+<!-- Download Modal -->
+<div id="dl-overlay" class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto px-4 pt-[12vh] opacity-0 pointer-events-none transition-opacity duration-300">
+  <div class="fixed inset-0 bg-black/60 backdrop-blur-xs" id="dl-backdrop"></div>
+  <div id="dl-dialog" class="relative w-full max-w-sm rounded-2xl border border-border bg-background p-6 shadow-2xl scale-95 transition-all duration-300">
+    <button id="dl-close" class="absolute right-4 top-4 cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
+      <Icon name="lucide:x" class="size-5" />
+    </button>
+
+    <h3 class="mb-5 text-lg font-semibold">选择平台</h3>
+
+    <!-- Platform buttons -->
+    <div class="flex gap-2 mb-5" id="dl-plats">
+      {PLATFORMS.map(p => (
+        <button data-plat={p.id} class="dl-plat flex flex-1 cursor-pointer flex-col items-center gap-2 rounded-xl border-2 border-border px-3 py-4 text-sm font-medium transition-all hover:border-primary/40 active:scale-[0.97]">
+          <Icon name={p.icon} class="size-6 text-muted-foreground" />
+          {p.label}
+        </button>
+      ))}
+    </div>
+
+    <!-- Architecture pills (animates in) -->
+    <div id="dl-arch-section" class="overflow-hidden transition-all duration-400 ease-out" style="max-height: 0; opacity: 0;">
+      <div class="pt-1">
+        <p class="mb-2 text-xs text-muted-foreground">选择架构</p>
+        <div class="flex gap-2" id="dl-archs"></div>
+      </div>
+    </div>
+
+    <!-- Download button (animates in) -->
+    <div id="dl-link-section" class="overflow-hidden transition-all duration-400 delay-150 ease-out" style="max-height: 0; opacity: 0;">
+      <div class="pt-4">
+        <a id="dl-link" href="#" target="_blank" class="hidden h-12 w-full items-center justify-center gap-2 rounded-xl bg-primary text-sm font-medium text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90">
+          <Icon name="lucide:download" class="size-4" />下载
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script data-astro-rerun define:vars={{ verTag }}>
+(function () {
+  var PLATFORMS = [
+    { id: 'windows', archs: { 'x64': 'x64-setup.msi', 'ARM64': 'arm64-setup.msi' } },
+    { id: 'macos', archs: { 'Intel (x64)': 'x64.dmg', 'Apple Silicon (ARM64)': 'aarch64.dmg' } },
+    { id: 'linux', archs: { 'x64': 'amd64.AppImage', 'ARM64': 'arm64.AppImage' } },
+  ]
+  var MIRROR_URL = 'https://gh.lenmei233.top/'
+  var TAG = verTag
+
+  // Auto-detect
+  function detect() {
+    var ua = navigator.userAgent
+    var plat = 'windows'
+    if (/mac/i.test(ua) && !/windows/i.test(ua)) plat = 'macos'
+    else if (/linux/i.test(ua)) plat = 'linux'
+
+    var arch
+    if (plat === 'macos') {
+      arch = (/arm|aarch64/i.test(ua)) ? 'Apple Silicon (ARM64)' : 'Intel (x64)'
+    } else {
+      arch = (/arm|aarch64/i.test(ua)) ? 'ARM64' : 'x64'
+    }
+    return { plat: plat, arch: arch }
+  }
+
+  var detected = detect()
+  var currentPlat = detected.plat
+  var currentArch = detected.arch
+
+  var btn = document.getElementById('dl-btn')
+  var overlay = document.getElementById('dl-overlay')
+  var backdrop = document.getElementById('dl-backdrop')
+  var dialog = document.getElementById('dl-dialog')
+  var closeBtn = document.getElementById('dl-close')
+  var archSection = document.getElementById('dl-arch-section')
+  var archContainer = document.getElementById('dl-archs')
+  var linkSection = document.getElementById('dl-link-section')
+  var link = document.getElementById('dl-link')
+
+  function openModal() {
+    overlay.classList.remove('opacity-0', 'pointer-events-none')
+    setTimeout(function () {
+      dialog.classList.remove('scale-95')
+    }, 30)
+    // Highlight detected platform
+    highlightPlat(detected.plat)
+    // Show archs for detected plat immediately
+    var platData = PLATFORMS.find(function (p) { return p.id === detected.plat })
+    if (platData) {
+      currentPlat = detected.plat
+      currentArch = detected.arch
+      renderArchs(platData.archs, detected.arch)
+      showArchAndLink()
+    }
+  }
+
+  function closeModal() {
+    dialog.classList.add('scale-95')
+    archSection.style.maxHeight = '0'
+    archSection.style.opacity = '0'
+    linkSection.style.maxHeight = '0'
+    linkSection.style.opacity = '0'
+    link.classList.add('hidden')
+    setTimeout(function () {
+      overlay.classList.add('opacity-0', 'pointer-events-none')
+    }, 200)
+  }
+
+  function highlightPlat(id) {
+    document.querySelectorAll('.dl-plat').forEach(function (b) {
+      var isActive = b.getAttribute('data-plat') === id
+      b.className = 'dl-plat flex flex-1 cursor-pointer flex-col items-center gap-2 rounded-xl border-2 px-3 py-4 text-sm font-medium transition-all active:scale-[0.97] ' +
+        (isActive ? 'border-primary bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:border-primary/40')
+    })
+  }
+
+  function renderArchs(archMap, selected) {
+    archContainer.innerHTML = ''
+    var keys = Object.keys(archMap)
+    keys.forEach(function (label) {
+      var pill = document.createElement('button')
+      pill.className = 'dl-arch cursor-pointer rounded-lg border px-3.5 py-2 text-xs font-medium transition-all active:scale-[0.97] ' +
+        (label === selected ? 'border-primary/40 bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:text-foreground')
+      pill.textContent = label
+      pill.setAttribute('data-arch', label)
+      pill.addEventListener('click', function () {
+        selectArch(label, archMap)
       })
-      this.className = 'tab-btn cursor-pointer rounded-lg px-5 py-2 text-sm font-medium transition-colors bg-background text-foreground shadow-xs'
+      archContainer.appendChild(pill)
+    })
+    currentArch = selected
+  }
+
+  function selectArch(label, archMap) {
+    currentArch = label
+    document.querySelectorAll('.dl-arch').forEach(function (p) {
+      p.className = 'dl-arch cursor-pointer rounded-lg border px-3.5 py-2 text-xs font-medium transition-all active:scale-[0.97] ' +
+        (p.getAttribute('data-arch') === label ? 'border-primary/40 bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:text-foreground')
+    })
+    updateLink()
+  }
+
+  function showArchAndLink() {
+    // Animate in arch pills
+    archSection.style.maxHeight = archSection.scrollHeight + 'px'
+    archSection.style.opacity = '1'
+    // Animate in download link
+    setTimeout(function () {
+      linkSection.style.maxHeight = linkSection.scrollHeight + 'px'
+      linkSection.style.opacity = '1'
+      updateLink()
+    }, 250)
+  }
+
+  function updateLink() {
+    var platData = PLATFORMS.find(function (p) { return p.id === currentPlat })
+    if (!platData) return
+    var suffix = platData.archs[currentArch]
+    if (!suffix || !TAG) {
+      link.href = 'https://github.com/Qomicex-Public/Qomicex.Tauri/releases/' + (TAG || 'latest')
+      link.textContent = '下载'
+      link.classList.remove('hidden')
+      return
+    }
+    var url = 'https://github.com/Qomicex-Public/Qomicex.Tauri/releases/download/' + TAG + '/Qomicex_' + TAG + '_' + suffix
+    var label = currentPlat === 'windows' ? '.exe' : currentPlat === 'macos' ? '.dmg' : '.AppImage'
+    link.href = url
+    link.textContent = '下载 ' + currentArch + ' ' + label
+    link.classList.remove('hidden')
+  }
+
+  // Platform click
+  document.querySelectorAll('.dl-plat').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var id = b.getAttribute('data-plat')
+      if (id === currentPlat) return
+      currentPlat = id
+      highlightPlat(id)
+      var platData = PLATFORMS.find(function (p) { return p.id === id })
+      if (!platData) return
+      // Auto-detect arch for this plat
+      var ua = navigator.userAgent
+      var arch
+      if (id === 'macos') {
+        arch = (/arm|aarch64/i.test(ua)) ? 'Apple Silicon (ARM64)' : 'Intel (x64)'
+      } else {
+        arch = (/arm|aarch64/i.test(ua)) ? 'ARM64' : 'x64'
+      }
+      // Reset arch section
+      archSection.style.maxHeight = '0'
+      archSection.style.opacity = '0'
+      linkSection.style.maxHeight = '0'
+      linkSection.style.opacity = '0'
+      link.classList.add('hidden')
+      // Re-render with new archs
+      setTimeout(function () {
+        renderArchs(platData.archs, arch)
+        showArchAndLink()
+        currentArch = arch
+      }, 300)
     })
   })
 
-  // arch switching (updates download links)
-  document.querySelectorAll('.arch-btn').forEach(function (btn) {
-    btn.addEventListener('click', function () {
-      // highlight active arch
-      var parent = this.parentElement
-      parent.querySelectorAll('.arch-btn').forEach(function (b) {
-        b.className = 'arch-btn cursor-pointer rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors border-border text-muted-foreground hover:text-foreground'
-      })
-      this.className = 'arch-btn cursor-pointer rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors border-primary/40 bg-primary/5 text-primary'
-
-      // find current panel
-      var panel = this.closest('[id^="panel-"]')
-      if (!panel) return
-      var links = panel.querySelectorAll('a')
-      var label = this.getAttribute('data-arch')
-      var plat = panel.id.replace('panel-', '')
-      var platBtn = document.querySelector('.tab-btn[data-plat="' + plat + '"]')
-      if (!platBtn) return
-      // find matching platform data - we rebuild URLs client-side from known patterns
-      var archMap = {
-        windows: { 'x64': 'x64-setup.msi', 'ARM64': 'arm64-setup.msi' },
-        macos: { 'Intel (x64)': 'x64.dmg', 'Apple Silicon (ARM64)': 'aarch64.dmg' },
-        linux: { 'x64': 'amd64.AppImage', 'ARM64': 'arm64.AppImage' },
-      }
-      var suffix = archMap[plat]?.[label] || ''
-      // try to get tag from displayed version
-      var verEl = document.querySelector('.inline-flex.items-center.gap-1\\.5')
-      var tag = 'latest'
-      if (verEl) {
-        var txt = verEl.textContent || ''
-        var m = txt.match(/v?(\d+\.\d+\.\d+)/)
-        if (m) tag = 'v' + m[1]
-      }
-      var base = 'https://github.com/Qomicex-Public/Qomicex.Tauri/releases/download/' + tag + '/Qomicex_' + tag + '_' + suffix
-      var mirrorUrl = 'https://gh.lenmei233.top/'
-      if (links.length >= 2) {
-        links[0].href = suffix ? base : 'https://github.com/Qomicex-Public/Qomicex.Tauri/releases/' + tag
-        links[1].href = suffix ? mirrorUrl + base : 'https://github.com/Qomicex-Public/Qomicex.Tauri/releases/' + tag
-      }
-    })
+  // Open
+  btn.addEventListener('click', openModal)
+  // Close
+  closeBtn.addEventListener('click', closeModal)
+  backdrop.addEventListener('click', closeModal)
+  // Esc key
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeModal()
   })
+})()
 </script>
