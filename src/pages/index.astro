@@ -74,13 +74,6 @@ const verDisplay = stableTag ? `v${stableTag.replace(/^v/i, '')}` : preTag ? `v$
       <Icon name="lucide:x" class="size-5" />
     </button>
 
-    {hasPre && (
-    <div id="dl-rel-bar" class="mb-4 flex gap-1 rounded-xl bg-muted p-0.5">
-      <button data-rel="stable" class="dl-rel flex-1 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium bg-background text-foreground shadow-xs transition-all">正式版</button>
-      <button data-rel="pre" class="dl-rel flex-1 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-all">测试版</button>
-    </div>
-    )}
-
     <h3 class="mb-5 text-lg font-semibold">选择平台</h3>
 
     <!-- Platform buttons -->
@@ -171,14 +164,8 @@ const verDisplay = stableTag ? `v${stableTag.replace(/^v/i, '')}` : preTag ? `v$
   var retry = document.getElementById('dl-retry')
 
   function openModal(isPreMode) {
-    // Reset version toggle
     if (isPreMode === undefined) isPreMode = false
     isPre = isPreMode
-    document.querySelectorAll('.dl-rel').forEach(function (b) {
-      var active = b.getAttribute('data-rel') === (isPreMode ? 'pre' : 'stable')
-      b.className = 'dl-rel flex-1 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium transition-all ' +
-        (active ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground')
-    })
     // Reset to selection view
     thanks.classList.add('hidden')
     thanks.classList.remove('flex')
@@ -320,44 +307,12 @@ const verDisplay = stableTag ? `v${stableTag.replace(/^v/i, '')}` : preTag ? `v$
     })
   })
 
-  // Version toggle
-  document.querySelectorAll('.dl-rel').forEach(function (b) {
-    b.addEventListener('click', function () {
-      var rel = b.getAttribute('data-rel')
-      var newIsPre = rel === 'pre'
-      if (newIsPre === isPre) return
-      isPre = newIsPre
-      document.querySelectorAll('.dl-rel').forEach(function (bb) {
-        var active = bb.getAttribute('data-rel') === rel
-        bb.className = 'dl-rel flex-1 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium transition-all ' +
-          (active ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground')
-      })
-      hideArchAndLink()
-      setTimeout(function () {
-        var platData = PLATFORMS.find(function (p) { return p.id === currentPlat })
-        if (platData) {
-          renderArchs(platData.archs, currentArch)
-          showArchAndLink()
-        }
-      }, 300)
-    })
-  })
-
   // Pre-release button on homepage
   var preBtn = document.getElementById('dl-pre-btn')
   if (preBtn) {
     preBtn.addEventListener('click', function (e) {
       e.preventDefault()
-      // Switch to pre-release tab in modal
-      document.querySelectorAll('.dl-rel').forEach(function (b) {
-        if (b.getAttribute('data-rel') === 'pre') {
-          isPre = true
-          b.className = 'dl-rel flex-1 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium transition-all bg-background text-foreground shadow-xs'
-        } else {
-          b.className = 'dl-rel flex-1 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium transition-all text-muted-foreground hover:text-foreground'
-        }
-      })
-      openModal()
+      openModal(true)
     })
   }
 
