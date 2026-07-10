@@ -32,12 +32,11 @@ function ghUrl(tag: string, file: string): string {
   return file && tag ? `https://github.com/Qomicex-Public/Qomicex.Tauri/releases/download/${tag}/${file}` : ''
 }
 
-const verDisplay = stable?.tagName
-  ? `v${stable.tagName.replace(/^v/i, '')}`
-  : pre?.tagName
-    ? `v${pre.tagName.replace(/^v/i, '')} (测试版)`
-    : ''
-const verTag = stable?.tagName ?? pre?.tagName ?? ''
+const hasPre = !!pre
+const stableTag = stable?.tagName ?? ''
+const preTag = pre?.tagName ?? ''
+const verTag = stableTag || preTag || ''
+const verDisplay = stableTag ? `v${stableTag.replace(/^v/i, '')}` : preTag ? `v${preTag.replace(/^v/i, '')} (测试版)` : ''
 ---
 
 <Base>
@@ -57,9 +56,12 @@ const verTag = stable?.tagName ?? pre?.tagName ?? ''
       <p class="mb-8 max-w-sm text-sm text-muted-foreground">一个现代化的 Minecraft 启动器，拥有完善的多实例管理、快捷的模组安装、账户管理、多人联机、个性化主题设置等功能。完全开源，使用 GPL-3.0 许可协议。</p>
 
       <button id="dl-btn" class="inline-flex h-14 w-full max-w-xs cursor-pointer items-center justify-center gap-2.5 rounded-xl bg-primary text-base font-medium text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/25 active:scale-[0.98]">
-        <Icon name="lucide:download" class="size-5" />下载 Qomicex
+        <Icon name="lucide:download" class="size-5" />下载正式版
       </button>
-      <p class="mt-3 text-xs text-muted-foreground">支持 Windows · macOS · Linux</p>
+      <p class="mt-3 text-xs text-muted-foreground">
+        支持 Windows · macOS · Linux
+        {hasPre && <>{' · '}<button id="dl-pre-btn" class="cursor-pointer underline underline-offset-2 hover:text-foreground transition-colors">下载测试版</button></>}
+      </p>
     </div>
   </section>
 </Base>
@@ -71,6 +73,13 @@ const verTag = stable?.tagName ?? pre?.tagName ?? ''
     <button id="dl-close" class="absolute right-4 top-4 cursor-pointer text-muted-foreground hover:text-foreground transition-colors">
       <Icon name="lucide:x" class="size-5" />
     </button>
+
+    {hasPre && (
+    <div id="dl-rel-bar" class="mb-4 flex gap-1 rounded-xl bg-muted p-0.5">
+      <button data-rel="stable" class="dl-rel flex-1 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium bg-background text-foreground shadow-xs transition-all">正式版</button>
+      <button data-rel="pre" class="dl-rel flex-1 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium text-muted-foreground hover:text-foreground transition-all">测试版</button>
+    </div>
+    )}
 
     <h3 class="mb-5 text-lg font-semibold">选择平台</h3>
 
@@ -117,7 +126,7 @@ const verTag = stable?.tagName ?? pre?.tagName ?? ''
   </div>
 </div>
 
-<script data-astro-rerun define:vars={{ verTag }}>
+<script data-astro-rerun define:vars={{ stableTag, preTag }}>
 (function () {
   var PLATFORMS = [
     { id: 'windows', archs: { 'x64': 'x64-setup.msi', 'ARM64': 'arm64-setup.msi' } },
@@ -125,7 +134,7 @@ const verTag = stable?.tagName ?? pre?.tagName ?? ''
     { id: 'linux', archs: { 'x64': 'amd64.AppImage', 'ARM64': 'arm64.AppImage' } },
   ]
   var MIRROR_URL = 'https://gh.lenmei233.top/'
-  var TAG = verTag
+  var isPre = false
 
   // Auto-detect
   function detect() {
@@ -161,7 +170,15 @@ const verTag = stable?.tagName ?? pre?.tagName ?? ''
   var thanksClose = document.getElementById('dl-thanks-close')
   var retry = document.getElementById('dl-retry')
 
-  function openModal() {
+  function openModal(isPreMode) {
+    // Reset version toggle
+    if (isPreMode === undefined) isPreMode = false
+    isPre = isPreMode
+    document.querySelectorAll('.dl-rel').forEach(function (b) {
+      var active = b.getAttribute('data-rel') === (isPreMode ? 'pre' : 'stable')
+      b.className = 'dl-rel flex-1 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium transition-all ' +
+        (active ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground')
+    })
     // Reset to selection view
     thanks.classList.add('hidden')
     thanks.classList.remove('flex')
@@ -255,17 +272,20 @@ const verTag = stable?.tagName ?? pre?.tagName ?? ''
     }, 250)
   }
 
+  function getTag() { return isPre ? preTag : stableTag }
+
   function updateLink() {
     var platData = PLATFORMS.find(function (p) { return p.id === currentPlat })
     if (!platData) return
+    var tag = getTag()
     var suffix = platData.archs[currentArch]
-    if (!suffix || !TAG) {
-      link.href = 'https://github.com/Qomicex-Public/Qomicex.Tauri/releases/' + (TAG || 'latest')
+    if (!suffix || !tag) {
+      link.href = 'https://github.com/Qomicex-Public/Qomicex.Tauri/releases/' + (tag || 'latest')
       link.textContent = '下载'
       link.classList.remove('hidden')
       return
     }
-    var url = 'https://github.com/Qomicex-Public/Qomicex.Tauri/releases/download/' + TAG + '/Qomicex_' + TAG + '_' + suffix
+    var url = 'https://github.com/Qomicex-Public/Qomicex.Tauri/releases/download/' + tag + '/Qomicex_' + tag + '_' + suffix
     var label = currentPlat === 'windows' ? '.exe' : currentPlat === 'macos' ? '.dmg' : '.AppImage'
     link.href = url
     link.textContent = '下载 ' + currentArch + ' ' + label
@@ -300,6 +320,47 @@ const verTag = stable?.tagName ?? pre?.tagName ?? ''
     })
   })
 
+  // Version toggle
+  document.querySelectorAll('.dl-rel').forEach(function (b) {
+    b.addEventListener('click', function () {
+      var rel = b.getAttribute('data-rel')
+      var newIsPre = rel === 'pre'
+      if (newIsPre === isPre) return
+      isPre = newIsPre
+      document.querySelectorAll('.dl-rel').forEach(function (bb) {
+        var active = bb.getAttribute('data-rel') === rel
+        bb.className = 'dl-rel flex-1 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium transition-all ' +
+          (active ? 'bg-background text-foreground shadow-xs' : 'text-muted-foreground hover:text-foreground')
+      })
+      hideArchAndLink()
+      setTimeout(function () {
+        var platData = PLATFORMS.find(function (p) { return p.id === currentPlat })
+        if (platData) {
+          renderArchs(platData.archs, currentArch)
+          showArchAndLink()
+        }
+      }, 300)
+    })
+  })
+
+  // Pre-release button on homepage
+  var preBtn = document.getElementById('dl-pre-btn')
+  if (preBtn) {
+    preBtn.addEventListener('click', function (e) {
+      e.preventDefault()
+      // Switch to pre-release tab in modal
+      document.querySelectorAll('.dl-rel').forEach(function (b) {
+        if (b.getAttribute('data-rel') === 'pre') {
+          isPre = true
+          b.className = 'dl-rel flex-1 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium transition-all bg-background text-foreground shadow-xs'
+        } else {
+          b.className = 'dl-rel flex-1 cursor-pointer rounded-lg px-3 py-1.5 text-xs font-medium transition-all text-muted-foreground hover:text-foreground'
+        }
+      })
+      openModal()
+    })
+  }
+
   // Download click → open + show thanks
   link.addEventListener('click', function (e) {
     e.preventDefault()
@@ -311,7 +372,7 @@ const verTag = stable?.tagName ?? pre?.tagName ?? ''
   thanksClose.addEventListener('click', closeModal)
 
   // Open
-  btn.addEventListener('click', openModal)
+  btn.addEventListener('click', function () { openModal(false) })
   // Close
   closeBtn.addEventListener('click', closeModal)
   backdrop.addEventListener('click', closeModal)
