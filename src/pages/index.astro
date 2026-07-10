@@ -1,0 +1,34 @@
+---
+import Base from '../layouts/Base.astro';
+import DownloadButton from '../components/DownloadButton.astro';
+---
+
+<Base>
+  <section class="mx-auto flex min-h-[70vh] max-w-4xl flex-col items-center justify-center px-4 text-center">
+    <h1 class="mb-4 text-4xl font-bold tracking-tight sm:text-5xl">
+      现代化的
+      <span class="text-[var(--color-primary)]">Minecraft</span>
+      启动器
+    </h1>
+    <p class="mb-8 max-w-lg text-lg text-[var(--color-muted-fg)]">
+      支持多版本管理、模组加载器兼容、账户管理等多功能于一体的 Minecraft 启动器。
+    </p>
+    <div class="flex flex-wrap justify-center gap-3">
+      <DownloadButton platform="Windows" />
+      <DownloadButton platform="Linux" />
+      <DownloadButton platform="macOS" />
+    </div>
+    <div class="mt-12 grid gap-6 sm:grid-cols-3">
+      {[
+        { title: '多版本管理', desc: '同时安装和管理多个 Minecraft 版本，互不干扰' },
+        { title: '模组加载器', desc: '支持 Forge、Fabric、Quilt、NeoForge 等主流加载器' },
+        { title: '账户管理', desc: '支持 Microsoft 账户、离线账户、外置登录等多种方式' },
+      ].map(f => (
+        <div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5 text-left">
+          <h3 class="mb-2 font-semibold text-[var(--color-primary)]">{f.title}</h3>
+          <p class="text-sm text-[var(--color-muted-fg)]">{f.desc}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+</Base>

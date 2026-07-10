@@ -1,0 +1,37 @@
+---
+import Base from '../layouts/Base.astro';
+import DownloadButton from '../components/DownloadButton.astro';
+---
+
+<Base title="下载">
+  <section class="mx-auto max-w-3xl px-4 py-16">
+    <h1 class="mb-2 text-3xl font-bold">下载 Qomicex Launcher</h1>
+    <p class="mb-10 text-[var(--color-muted-fg)]">选择你的操作系统，下载对应版本。</p>
+
+    <div class="space-y-4">
+      {[
+        { platform: 'Windows', desc: 'Windows 10/11 64位', note: '.msi 安装包' },
+        { platform: 'macOS', desc: 'macOS 11+ Intel / Apple Silicon', note: '.dmg 镜像' },
+        { platform: 'Linux', desc: 'Linux x86_64', note: '.AppImage / .deb' },
+      ].map(item => (
+        <div class="flex items-center justify-between rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5">
+          <div>
+            <h3 class="font-semibold">{item.platform}</h3>
+            <p class="text-sm text-[var(--color-muted-fg)]">{item.desc}</p>
+            <p class="text-xs text-[var(--color-muted-fg)]">{item.note}</p>
+          </div>
+          <DownloadButton platform={item.platform} label="下载" />
+        </div>
+      ))}
+    </div>
+
+    <div class="mt-10 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5">
+      <h3 class="mb-2 font-semibold">系统要求</h3>
+      <ul class="space-y-1 text-sm text-[var(--color-muted-fg)]">
+        <li>• 需要 Java 17 或更高版本（启动器内置 Java 下载功能）</li>
+        <li>• 推荐 4GB 以上可用内存</li>
+        <li>• 需安装最新的显卡驱动（用于 Vulkan 渲染）</li>
+      </ul>
+    </div>
+  </section>
+</Base>

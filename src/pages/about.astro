@@ -1,0 +1,41 @@
+---
+import Base from '../layouts/Base.astro';
+---
+
+<Base title="关于">
+  <section class="mx-auto max-w-3xl px-4 py-16">
+    <h1 class="mb-6 text-3xl font-bold">关于 Qomicex Launcher</h1>
+
+    <div class="space-y-6 text-[var(--color-muted-fg)] leading-relaxed">
+      <p>
+        Qomicex Launcher 是一个开源的现代化 Minecraft 启动器，基于 Tauri 2 + React 构建，
+        致力于提供流畅、稳定、功能丰富的游戏启动体验。
+      </p>
+      <p>
+        项目完全开源，采用 GPL-3.0 协议。我们欢迎社区贡献代码、提交反馈和建议。
+      </p>
+      <p>
+        你可以通过以下渠道联系我们：
+      </p>
+      <ul class="space-y-2">
+        <li>
+          <span class="font-semibold text-[var(--color-fg)]">GitHub</span>
+          &nbsp;<a href="https://github.com/Qomicex-Public" class="text-[var(--color-primary)] underline underline-offset-2">github.com/Qomicex-Public</a>
+        </li>
+        <li>
+          <span class="font-semibold text-[var(--color-fg)]">QQ 群</span>
+          &nbsp;<a href="https://qm.qq.com/q/rKiwzrkg8w" class="text-[var(--color-primary)] underline underline-offset-2" target="_blank">623362446</a>
+        </li>
+      </ul>
+    </div>
+
+    <div class="mt-10 rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5">
+      <h2 class="mb-3 text-lg font-semibold">技术栈</h2>
+      <div class="flex flex-wrap gap-2">
+        {['Tauri 2', 'React 19', 'TypeScript', 'Tailwind CSS', 'ASP.NET Core 10', 'Rust'].map(t => (
+          <span class="rounded-md bg-[var(--color-muted)] px-2.5 py-1 text-xs text-[var(--color-muted-fg)]">{t}</span>
+        ))}
+      </div>
+    </div>
+  </section>
+</Base>

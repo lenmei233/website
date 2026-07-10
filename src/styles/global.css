@@ -1,0 +1,30 @@
+@import "tailwindcss";
+
+@theme {
+  --color-bg: #0C0D14;
+  --color-fg: #EDEFF5;
+  --color-primary: #24A148;
+  --color-primary-hover: #2DC653;
+  --color-card: #15161D;
+  --color-muted: #2A2D38;
+  --color-muted-fg: #858999;
+  --color-border: #2E3240;
+  --color-destructive: #E54D4D;
+}
+
+html {
+  background-color: var(--color-bg);
+  color: var(--color-fg);
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-bg);
+}
