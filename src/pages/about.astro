@@ -111,9 +111,7 @@ const FRONTEND_DEPS = [
       <div class="space-y-3">
         {CONTRIBUTORS.map(c => (
           <div class="flex items-center gap-3">
-            <div class="flex size-10 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-              {c.name.slice(0, 1).toUpperCase()}
-            </div>
+            <img src={`/avatars/${c.name}.png`} alt={c.name} class="size-10 rounded-full object-cover" />
             <div class="min-w-0 flex-1">
               <div class="text-sm font-medium">{c.name}</div>
               <div class="text-xs text-muted-foreground">{c.role}</div>
@@ -132,16 +130,21 @@ const FRONTEND_DEPS = [
         <Icon name="lucide:heart" class="mr-1.5 inline size-4 align-text-bottom text-destructive" />鸣谢
       </h2>
       <div class="grid grid-cols-1 gap-1 sm:grid-cols-2">
-        {SERVICES.map(svc => (
+        {SERVICES.map(svc => {
+          const ext = svc.name === 'Modrinth' ? 'svg' : 'png';
+          const file = svc.name === 'Minecraft 官网' ? 'minecraft' : svc.name.toLowerCase();
+          const iconFile = `/services/${file}.${ext}`;
+          return (
           <a href={svc.url} target="_blank" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-accent">
-            <Icon name="lucide:globe" class="size-4 shrink-0 text-muted-foreground" />
+            <img src={iconFile} alt={svc.name} class="size-6 shrink-0 rounded object-contain" />
             <div class="min-w-0 flex-1">
               <div class="font-medium">{svc.name}</div>
               <div class="truncate text-xs text-muted-foreground">{svc.desc}</div>
             </div>
             <Icon name="lucide:external-link" class="size-3 shrink-0 text-muted-foreground/50" />
           </a>
-        ))}
+          );
+        })}
       </div>
     </div>
 
