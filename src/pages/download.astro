@@ -7,101 +7,164 @@ const releases = await getReleases()
 const stable = releases.find(r => !r.prerelease)
 const pre = releases.find(r => r.prerelease)
 
-const platforms = [
-  { id: 'windows', icon: 'fa6-brands:windows', label: 'Windows 10/11 64位', note: '.msi / .exe' },
-  { id: 'macos-intel', icon: 'fa6-brands:apple', label: 'macOS Intel', note: '.dmg (x64)' },
-  { id: 'macos-arm', icon: 'fa6-brands:apple', label: 'macOS Apple Silicon', note: '.dmg (ARM64)' },
-  { id: 'linux', icon: 'lucide:terminal', label: 'Linux', note: '.AppImage / .deb' },
-] as const
+const MIRROR_URL = MIRRORS.find(m => m.label === 'gh.lenmei233.top')?.url ?? ''
 
-function assetFileName(version: string, id: string): string {
-  const map: Record<string, string> = {
-    windows: `Qomicex_${version}_x64-setup.msi`,
-    'macos-intel': `Qomicex_${version}_x64.dmg`,
-    'macos-arm': `Qomicex_${version}_aarch64.dmg`,
-    linux: `Qomicex_${version}_amd64.AppImage`,
-  }
-  return map[id] ?? ''
-}
+const ASH_GROUPS = [
+  {
+    id: 'windows', icon: 'fa6-brands:windows', label: 'Windows',
+    archs: [
+      { label: 'x64', file: (v: string) => `Qomicex_${v}_x64-setup.msi` },
+      { label: 'ARM64', file: (v: string) => `Qomicex_${v}_arm64-setup.msi` },
+    ],
+  },
+  {
+    id: 'macos', icon: 'fa6-brands:apple', label: 'macOS',
+    archs: [
+      { label: 'Intel (x64)', file: (v: string) => `Qomicex_${v}_x64.dmg` },
+      { label: 'Apple Silicon (ARM64)', file: (v: string) => `Qomicex_${v}_aarch64.dmg` },
+    ],
+  },
+  {
+    id: 'linux', icon: 'lucide:terminal', label: 'Linux',
+    archs: [
+      { label: 'x64', file: (v: string) => `Qomicex_${v}_amd64.AppImage` },
+      { label: 'ARM64', file: (v: string) => `Qomicex_${v}_arm64.AppImage` },
+      { label: 'LoongArch64 (实验性)', file: () => '' },
+      { label: 'RISC-V 64 (实验性)', file: () => '' },
+    ],
+  },
+]
 
-function assetUrl(version: string, platformId: string, tagName: string): string {
-  const file = assetFileName(version, platformId)
-  return `https://github.com/Qomicex-Public/Qomicex.Tauri/releases/download/${tagName}/${file}`
+function ghUrl(ver: string, file: string): string {
+  return file ? `https://github.com/Qomicex-Public/Qomicex.Tauri/releases/download/${ver}/${file}` : ''
 }
 ---
 
 <Base title="下载">
-  <section class="mx-auto max-w-3xl px-4 py-16">
-    <h1 class="mb-2 text-3xl font-bold">下载 Qomicex Launcher</h1>
-    <p class="mb-2 text-muted-foreground">选择版本和操作系统，点击下载查看可用下载源。</p>
+  <section class="mx-auto max-w-2xl px-4 py-16">
+    <h1 class="mb-1 text-center text-3xl font-bold">下载 Qomicex Launcher</h1>
+    <p class="mb-8 text-center text-sm text-muted-foreground">选择你的平台和架构，开始下载。</p>
 
-    <div class="mb-8 flex flex-wrap gap-2" id="tab-bar">
-      <button data-tab="stable" class="tab-btn active inline-flex h-9 items-center gap-1.5 rounded-lg border bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-colors">
-        <Icon name="lucide:verified" class="size-4" />正式版{stable ? ` ${stable.version}` : ''}
-      </button>
+    <!-- Stable / Pre tabs -->
+    <div class="mb-8 flex justify-center gap-1.5 rounded-xl bg-muted p-1">
+      <label class="relative cursor-pointer rounded-lg bg-background px-4 py-2 text-sm font-medium text-foreground shadow-sm">
+        <input type="radio" name="rel-tab" value="stable" checked class="peer hidden" />
+        <span class="flex items-center gap-1.5"><Icon name="lucide:verified" class="size-4" />正式版{stable ? ` ${stable.version}` : ''}</span>
+      </label>
       {pre && (
-        <button data-tab="pre" class="tab-btn inline-flex h-9 items-center gap-1.5 rounded-lg border border-border bg-card px-4 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent">
-          <Icon name="lucide:beaker" class="size-4" />测试版 {pre.version}
-        </button>
+      <label class="relative cursor-pointer rounded-lg px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground">
+        <input type="radio" name="rel-tab" value="pre" class="peer hidden" />
+        <span class="flex items-center gap-1.5"><Icon name="lucide:beaker" class="size-4" />测试版 {pre.version}</span>
+      </label>
       )}
     </div>
 
-    <!-- Stable -->
-    <div id="tab-stable" class="tab-content">
+    <!-- Stable content -->
+    <div id="rel-stable" class="space-y-6">
       {stable ? (
-        <div class="space-y-3">
-          {platforms.map(p => {
-            const url = assetUrl(stable.version, p.id, stable.tagName)
-            return (
-            <button data-dl-version={stable.version} data-dl-platform={p.id} data-dl-prerelease="false" data-dl-url={url} data-dl-filename={assetFileName(stable.version, p.id)} class="dl-trigger flex w-full items-center justify-between rounded-xl border border-border bg-card p-5 text-left transition-all hover:border-primary/30 hover:shadow-[0_0_16px_-8px_hsl(var(--primary)/0.25)]">
-              <div class="flex items-center gap-3">
-                <Icon name={p.icon} class="size-5 shrink-0 text-primary" />
-                <div>
-                  <h3 class="font-semibold">{p.label}</h3>
-                  <p class="text-xs text-muted-foreground">{p.note}</p>
-                </div>
+        <>
+          <div class="mb-4 flex justify-center gap-1.5 rounded-xl bg-muted p-1">
+            {ASH_GROUPS.map((g, i) => (
+              <label class={"relative cursor-pointer rounded-lg px-4 py-2 text-sm font-medium transition-colors " + (i === 0 ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
+                <input type="radio" name="plat-stable" value={g.id} checked={i === 0} class="peer hidden" />
+                <span class="flex items-center gap-1.5"><Icon name={g.icon} class="size-4" />{g.label}</span>
+              </label>
+            ))}
+          </div>
+          {ASH_GROUPS.map((g, gi) => (
+            <div id={"sarchs-" + g.id} class={"space-y-4 " + (gi === 0 ? '' : 'hidden')}>
+              <div class="flex flex-wrap justify-center gap-2">
+                {g.archs.map((a, ai) => {
+                  const fn = a.file(stable.version)
+                  const url = ghUrl(stable.tagName, fn)
+                  return (
+                    <div class={"flex items-center gap-2 rounded-xl border p-3 transition-colors " + (ai === 0 ? 'border-primary/30 bg-primary/5' : 'border-border')}>
+                      <label class="flex cursor-pointer items-center gap-2 text-sm">
+                        <input type="radio" name={"arch-s-" + g.id} value={a.label} checked={ai === 0} class="size-3.5 accent-primary" />
+                        {a.label}
+                      </label>
+                    </div>
+                  )
+                })}
               </div>
-              <span class="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow transition-colors">
-                <Icon name="lucide:download" class="size-4" />下载
-              </span>
-            </button>
-            )
-          })}
-        </div>
-      ) : <p class="text-muted-foreground">暂无正式版。</p>}
-    </div>
-
-    <!-- Prerelease -->
-    {pre && (
-    <div id="tab-pre" class="tab-content hidden">
-      <div class="mb-3 flex items-center gap-2 rounded-lg bg-yellow-500/10 px-4 py-3 text-sm text-yellow-700 dark:text-yellow-300">
-        <Icon name="lucide:beaker" class="size-4 shrink-0" />
-        测试版包含最新功能但可能不稳定，仅供体验和反馈。
-      </div>
-      <div class="space-y-3">
-        {platforms.map(p => {
-          const url = assetUrl(pre.version, p.id, pre.tagName)
-          return (
-          <button data-dl-version={pre.version} data-dl-platform={p.id} data-dl-prerelease="true" data-dl-url={url} data-dl-filename={assetFileName(pre.version, p.id)} class="dl-trigger flex w-full items-center justify-between rounded-xl border border-border bg-card p-5 text-left transition-all hover:border-yellow-500/30 hover:shadow-[0_0_16px_-8px_hsl(var(--primary)/0.25)]">
-            <div class="flex items-center gap-3">
-              <Icon name={p.icon} class="size-5 shrink-0 text-primary" />
-              <div>
-                <h3 class="font-semibold">{p.label}</h3>
-                <p class="text-xs text-muted-foreground">{p.note}</p>
+              <div class="flex flex-wrap justify-center gap-3">
+                {(() => {
+                  const fn0 = g.archs[0].file(stable.version)
+                  const u0 = ghUrl(stable.tagName, fn0)
+                  const href = u0 || stable.htmlUrl
+                  return (
+                    <>
+                      <a href={href} target="_blank" class="inline-flex h-10 items-center gap-2 rounded-md bg-primary px-6 text-sm font-medium text-primary-foreground shadow transition-all hover:bg-primary/90 hover:shadow-lg" data-line="1">
+                        <Icon name="lucide:download" class="size-4" />下载线路 1
+                      </a>
+                      <a href={MIRROR_URL + href} target="_blank" class="inline-flex h-10 items-center gap-2 rounded-md border border-input bg-background px-6 text-sm font-medium shadow-sm transition-all hover:bg-accent hover:text-accent-foreground" data-line="2">
+                        <Icon name="lucide:zap" class="size-4" />下载线路 2
+                      </a>
+                    </>
+                  )
+                })()}
               </div>
             </div>
-            <span class="inline-flex h-9 items-center gap-1.5 rounded-md bg-yellow-600 px-4 text-sm font-medium text-white shadow transition-colors">
-              <Icon name="lucide:download" class="size-4" />下载
-            </span>
-          </button>
-          )
-        })}
+          ))}
+        </>
+      ) : <p class="text-center text-muted-foreground">暂无正式版。</p>}
+    </div>
+
+    <!-- Pre content -->
+    {pre && (
+    <div id="rel-pre" class="hidden space-y-6">
+      <div class="flex items-center gap-2 rounded-lg bg-yellow-500/10 px-4 py-3 text-sm text-yellow-700 dark:text-yellow-300">
+        <Icon name="lucide:beaker" class="size-4 shrink-0" />测试版包含最新功能但可能不稳定。
       </div>
+      <div class="mb-4 flex justify-center gap-1.5 rounded-xl bg-muted p-1">
+        {ASH_GROUPS.map((g, i) => (
+          <label class={"relative cursor-pointer rounded-lg px-4 py-2 text-sm font-medium transition-colors " + (i === 0 ? 'bg-background text-foreground shadow-sm' : 'text-muted-foreground hover:text-foreground')}>
+            <input type="radio" name="plat-pre" value={g.id} checked={i === 0} class="peer hidden" />
+            <span class="flex items-center gap-1.5"><Icon name={g.icon} class="size-4" />{g.label}</span>
+          </label>
+        ))}
+      </div>
+      {ASH_GROUPS.map((g, gi) => (
+        <div id={"parchs-" + g.id} class={"space-y-4 " + (gi === 0 ? '' : 'hidden')}>
+          <div class="flex flex-wrap justify-center gap-2">
+            {g.archs.map((a, ai) => {
+              const fn = a.file(pre.version)
+              const url = ghUrl(pre.tagName, fn)
+              return (
+                <div class={"flex items-center gap-2 rounded-xl border p-3 transition-colors " + (ai === 0 ? 'border-yellow-500/30 bg-yellow-500/5' : 'border-border')}>
+                  <label class="flex cursor-pointer items-center gap-2 text-sm">
+                    <input type="radio" name={"arch-p-" + g.id} value={a.label} checked={ai === 0} class="size-3.5 accent-yellow-600" />
+                    {a.label}
+                  </label>
+                </div>
+              )
+            })}
+          </div>
+          <div class="flex flex-wrap justify-center gap-3">
+            {(() => {
+              const fn0 = g.archs[0].file(pre.version)
+              const u0 = ghUrl(pre.tagName, fn0)
+              const href = u0 || pre.htmlUrl
+              return (
+                <>
+                  <a href={href} target="_blank" class="inline-flex h-10 items-center gap-2 rounded-md bg-yellow-600 px-6 text-sm font-medium text-white shadow transition-all hover:bg-yellow-700 hover:shadow-lg">
+                    <Icon name="lucide:download" class="size-4" />下载线路 1
+                  </a>
+                  <a href={MIRROR_URL + href} target="_blank" class="inline-flex h-10 items-center gap-2 rounded-md border border-input bg-background px-6 text-sm font-medium shadow-sm transition-all hover:bg-accent hover:text-accent-foreground">
+                    <Icon name="lucide:zap" class="size-4" />下载线路 2
+                  </a>
+                </>
+              )
+            })()}
+          </div>
+        </div>
+      ))}
     </div>
     )}
 
-    <div class="mt-8 rounded-xl border border-border bg-card p-5">
-      <h3 class="mb-2 font-semibold">兼容平台</h3>
+    <!-- Platform compat -->
+    <div class="mt-10 rounded-xl border border-border bg-card p-5">
+      <h3 class="mb-3 text-sm font-semibold">兼容平台</h3>
       <div class="overflow-x-auto text-sm">
         <table class="w-full text-left text-xs">
           <thead>
@@ -146,154 +209,41 @@ function assetUrl(version: string, platformId: string, tagName: string): string 
   </section>
 </Base>
 
-<!-- Download Dialog -->
-<dialog id="dl-dialog" class="w-full max-w-md rounded-xl border border-border bg-background p-0 text-foreground shadow-2xl backdrop:bg-black/50 open:flex open:flex-col">
-  <div class="flex items-center justify-between border-b border-border px-5 py-4">
-    <h2 class="flex items-center gap-2 text-base font-semibold">
-      <Icon name="lucide:download" class="size-4 text-primary" />
-      下载 Qomicex
-    </h2>
-    <form method="dialog">
-      <button class="inline-flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
-        <Icon name="lucide:x" class="size-4" />
-      </button>
-    </form>
-  </div>
-  <div class="space-y-4 px-5 py-4">
-    <div class="space-y-2 text-sm">
-      <div class="flex items-center gap-2">
-        <span class="text-muted-foreground">版本</span>
-        <span id="dl-version" class="font-medium"></span>
-        <span id="dl-badge" class="hidden rounded-full bg-yellow-500/10 px-2 py-0.5 text-xs font-medium text-yellow-600 dark:text-yellow-400">测试版</span>
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="text-muted-foreground">平台</span>
-        <span id="dl-platform" class="font-medium"></span>
-      </div>
-      <div class="flex items-center gap-2">
-        <span class="text-muted-foreground">文件</span>
-        <span id="dl-filename" class="break-all font-mono text-xs text-muted-foreground"></span>
-      </div>
-    </div>
-    <div class="border-t border-border pt-3">
-      <p class="mb-2 text-xs font-medium text-muted-foreground">选择下载源</p>
-      <div id="mirror-list" class="space-y-1">
-        {MIRRORS.filter(m => m.best).map((m, i) => (
-          <label class={`mirror-opt flex cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors ${i === 0 ? 'bg-primary/5 ring-1 ring-primary/20' : 'hover:bg-accent'}`}>
-            <input type="radio" name="mirror" value={m.url} checked={i === 0} class="size-4 accent-primary" />
-            <div class="min-w-0 flex-1">
-              <span class="font-medium">{m.label}</span>
-              {i === 0 && <span class="ml-1.5 text-xs text-muted-foreground">(直连)</span>}
-            </div>
-            {m.label !== 'GitHub 直连' && <span class="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">镜像</span>}
-          </label>
-        ))}
-      </div>
-      <details class="group mt-1">
-        <summary class="mirror-more flex cursor-pointer list-none items-center gap-1.5 rounded-lg px-3 py-2 text-xs text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground">
-          <Icon name="lucide:chevron-down" class="size-3.5 transition-transform group-open:rotate-180" />
-          更多镜像 ({MIRRORS.filter(m => !m.best).length} 个)
-        </summary>
-        <div class="mt-1 space-y-1 pl-3">
-          {MIRRORS.filter(m => !m.best).map(m => (
-            <label class="mirror-opt flex cursor-pointer items-center gap-2.5 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent">
-              <input type="radio" name="mirror" value={m.url} class="size-4 accent-primary" />
-              <span class="min-w-0 flex-1 font-medium">{m.label}</span>
-              <span class="shrink-0 rounded bg-primary/10 px-1.5 py-0.5 text-[10px] font-medium text-primary">镜像</span>
-            </label>
-          ))}
-        </div>
-      </details>
-    </div>
-  </div>
-  <div class="flex items-center justify-end gap-2 border-t border-border px-5 py-3">
-    <form method="dialog">
-      <button class="inline-flex h-9 items-center rounded-md border border-input bg-background px-4 text-sm font-medium shadow-sm transition-colors hover:bg-accent hover:text-accent-foreground">取消</button>
-    </form>
-    <button id="dl-confirm" class="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90">
-      <Icon name="lucide:download" class="size-4" />立即下载
-    </button>
-  </div>
-</dialog>
-
-<!-- Thank you overlay -->
-<div id="thanks-overlay" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/60 backdrop-blur-sm">
-  <div class="mx-auto max-w-sm rounded-xl border border-border bg-background p-8 text-center shadow-2xl">
-    <div class="mx-auto mb-4 flex size-14 items-center justify-center rounded-full bg-primary/10">
-      <svg class="size-7 text-primary" xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
-    </div>
-    <h2 class="mb-1 text-lg font-semibold">感谢下载 Qomicex Launcher</h2>
-    <p class="mb-1 text-sm text-muted-foreground">下载已开始，请稍候。</p>
-    <p class="mb-6 text-xs text-muted-foreground">
-      <span id="thanks-countdown">3</span> 秒后跳转至安装教程
-    </p>
-    <a href="/docs/install/" class="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-5 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90">
-      立即查看安装教程
-    </a>
-  </div>
-</div>
-
 <script data-astro-rerun>
-  const dialog = document.getElementById('dl-dialog')
-  const overlay = document.getElementById('thanks-overlay')
-  var thanksTimer = null
-
-  if (dialog) {
-    document.querySelectorAll('.tab-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        document.querySelectorAll('.tab-btn').forEach(function (b) {
-          b.classList.remove('active', 'bg-primary', 'text-primary-foreground', 'shadow-sm')
-          b.classList.add('bg-card', 'text-muted-foreground', 'border-border')
-        })
-        btn.classList.remove('bg-card', 'text-muted-foreground', 'border-border')
-        btn.classList.add('active', 'bg-primary', 'text-primary-foreground', 'shadow-sm')
-        document.querySelectorAll('.tab-content').forEach(function (el) { el.classList.add('hidden') })
-        var tab = document.getElementById('tab-' + btn.dataset.tab)
-        if (tab) tab.classList.remove('hidden')
+  // Platform tabs switching for stable
+  document.querySelectorAll('input[name="plat-stable"]').forEach(function (r) {
+    r.addEventListener('change', function () {
+      document.querySelectorAll('[id^="sarchs-"]').forEach(function (el) { el.classList.add('hidden') })
+      var t = document.getElementById('sarchs-' + this.value)
+      if (t) t.classList.remove('hidden')
+      document.querySelectorAll('input[name="plat-stable"]').forEach(function (rb) {
+        rb.parentElement.className = 'relative cursor-pointer rounded-lg px-4 py-2 text-sm font-medium transition-colors text-muted-foreground hover:text-foreground'
       })
+      this.parentElement.className = 'relative cursor-pointer rounded-lg px-4 py-2 text-sm font-medium transition-colors bg-background text-foreground shadow-sm'
     })
-
-    document.querySelectorAll('.dl-trigger').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        document.getElementById('dl-version').textContent = 'v' + btn.dataset.dlVersion
-        document.getElementById('dl-badge').className = btn.dataset.dlPrerelease === 'true'
-          ? 'rounded-full bg-yellow-500/10 px-2 py-0.5 text-xs font-medium text-yellow-600 dark:text-yellow-400'
-          : 'hidden'
-        document.getElementById('dl-platform').textContent = {
-          windows: 'Windows 10/11 64位',
-          'macos-intel': 'macOS Intel',
-          'macos-arm': 'macOS Apple Silicon',
-          linux: 'Linux'
-        }[btn.dataset.dlPlatform] || btn.dataset.dlPlatform
-        document.getElementById('dl-filename').textContent = btn.dataset.dlFilename
-        dialog.dataset.dlUrl = btn.dataset.dlUrl
-        var firstRadio = document.querySelector('input[name="mirror"]')
-        if (firstRadio) firstRadio.checked = true
-        dialog.showModal()
+  })
+  // Platform tabs switching for prerelease
+  document.querySelectorAll('input[name="plat-pre"]').forEach(function (r) {
+    r.addEventListener('change', function () {
+      document.querySelectorAll('[id^="parchs-"]').forEach(function (el) { el.classList.add('hidden') })
+      var t = document.getElementById('parchs-' + this.value)
+      if (t) t.classList.remove('hidden')
+      document.querySelectorAll('input[name="plat-pre"]').forEach(function (rb) {
+        rb.parentElement.className = 'relative cursor-pointer rounded-lg px-4 py-2 text-sm font-medium transition-colors text-muted-foreground hover:text-foreground'
       })
+      this.parentElement.className = 'relative cursor-pointer rounded-lg px-4 py-2 text-sm font-medium transition-colors bg-background text-foreground shadow-sm'
     })
-
-    document.getElementById('dl-confirm').addEventListener('click', function () {
-      var mirror = document.querySelector('input[name="mirror"]:checked')
-      var origUrl = dialog.dataset.dlUrl
-      if (!origUrl) return
-      var finalUrl = mirror && mirror.value ? mirror.value + origUrl : origUrl
-      window.open(finalUrl, '_blank')
-      dialog.close()
-      // Thanks overlay
-      overlay.classList.remove('hidden')
-      overlay.classList.add('flex')
-      var count = 3
-      document.getElementById('thanks-countdown').textContent = count
-      if (thanksTimer) clearInterval(thanksTimer)
-      thanksTimer = setInterval(function () {
-        count--
-        document.getElementById('thanks-countdown').textContent = count
-        if (count <= 0) {
-          clearInterval(thanksTimer)
-          window.location.href = '/docs/install/'
-        }
-      }, 1000)
+  })
+  // Release tab switching
+  document.querySelectorAll('input[name="rel-tab"]').forEach(function (r) {
+    r.addEventListener('change', function () {
+      document.querySelectorAll('[id^="rel-"]').forEach(function (el) { el.classList.add('hidden') })
+      var t = document.getElementById('rel-' + this.value)
+      if (t) t.classList.remove('hidden')
+      document.querySelectorAll('input[name="rel-tab"]').forEach(function (rb) {
+        rb.parentElement.className = 'relative cursor-pointer rounded-lg px-4 py-2 text-sm font-medium transition-colors text-muted-foreground hover:text-foreground'
+      })
+      this.parentElement.className = 'relative cursor-pointer rounded-lg px-4 py-2 text-sm font-medium transition-colors bg-background text-foreground shadow-sm'
     })
-  }
+  })
 </script>
