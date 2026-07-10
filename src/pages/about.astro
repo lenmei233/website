@@ -1,22 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
 import { Icon } from 'astro-icon/components';
-import { getReleases, getLatestStable, getLatestPrerelease } from '../lib/releases.ts';
+import { getReleases } from '../lib/releases.ts';
 
 const releases = await getReleases()
 const latestStable = releases.find(r => !r.prerelease)
 const latestPre = releases.find(r => r.prerelease)
-const displayVersion = latestPre
-  ? `${latestPre.version}${latestPre.prerelease ? ' (测试版)' : ''}`
-  : latestStable?.version ?? ''
-
-const APP_INFO = {
-  name: 'Qomicex Launcher',
-  version: displayVersion,
-  description: '一个现代化的 Minecraft 启动器，支持多版本管理、模组加载器兼容、账户管理等功能。',
-}
-
-const REPOSITORY_URL = 'https://github.com/Qomicex-Public/Qomicex.Tauri'
 
 const CONTRIBUTORS = [
   { name: 'lenmei233', role: '项目发起人 / 主要开发者', url: 'https://github.com/lenmei233' },
@@ -29,59 +18,13 @@ const SERVICES = [
   { name: 'FTB', desc: '整合包 API', url: 'https://www.feed-the-beast.com' },
   { name: 'bangbang93', desc: '提供 BMCLAPI 下载镜像服务', url: 'https://bmclapi2.bangbang93.com' },
   { name: 'mcmod', desc: '中文 Mod 数据库', url: 'https://www.mcmod.cn' },
-  { name: 'Minecraft 官网', desc: 'Minecraft 官方网站，支持正版!', url: 'https://www.minecraft.net' },
+  { name: 'Minecraft 官网', desc: 'Minecraft 官方网站', url: 'https://www.minecraft.net' },
 ]
 
-const REFERENCE_PROJECTS = [
+const REFERENCES = [
   { name: 'HMCL', url: 'https://github.com/HMCL-dev/HMCL/tree/main', desc: '版本检测参考' },
   { name: 'ProjBobcat', url: 'https://github.com/Corona-Studio/ProjBobcat', desc: 'ModLoader 安装器参考' },
   { name: 'PCL', url: 'https://github.com/Meloong-Git/PCL', desc: '启动流程参考' },
-]
-
-const BACKEND_DEPS = [
-  { category: '.NET 与运行时', items: [
-    { name: '.NET 10', version: '10.x', url: 'https://dotnet.microsoft.com', license: 'MIT' },
-    { name: 'ASP.NET Core', version: '10.x', url: 'https://learn.microsoft.com/aspnet/core', license: 'MIT' },
-  ]},
-  { category: '核心库', items: [
-    { name: 'Qomicex.Core', version: '内置', url: 'https://github.com/Qomicex-Public/Qomicex.Core', license: '自研' },
-    { name: 'Qomicex.Connector', version: '内置', url: 'https://github.com/Qomicex-Public/Qomicex.Connector.Part.Scaffolding', license: '自研' },
-    { name: 'Qomicex.Downloader', version: '内置', url: 'https://github.com/Qomicex-Public/Qomicex.Downloader', license: '自研' },
-  ]},
-]
-
-const FRONTEND_DEPS = [
-  { category: '核心框架', items: [
-    { name: 'react', license: 'MIT', url: 'https://react.dev' },
-    { name: 'react-dom', license: 'MIT', url: 'https://react.dev' },
-    { name: 'react-router-dom', license: 'MIT', url: 'https://reactrouter.com' },
-    { name: '@tauri-apps/api', license: 'MIT', url: 'https://tauri.app' },
-    { name: '@tauri-apps/plugin-opener', license: 'MIT', url: 'https://tauri.app' },
-    { name: '@tauri-apps/plugin-dialog', license: 'MIT', url: 'https://tauri.app' },
-  ]},
-  { category: 'UI 组件', items: [
-    { name: '@radix-ui/react-checkbox', license: 'MIT', url: 'https://radix-ui.com' },
-    { name: '@radix-ui/react-slot', license: 'MIT', url: 'https://radix-ui.com' },
-    { name: '@fortawesome/free-solid-svg-icons', license: 'MIT', url: 'https://fontawesome.com' },
-    { name: '@fortawesome/free-brands-svg-icons', license: 'MIT', url: 'https://fontawesome.com' },
-    { name: '@fortawesome/react-fontawesome', license: 'MIT', url: 'https://fontawesome.com' },
-  ]},
-  { category: '样式与工具', items: [
-    { name: 'tailwindcss', license: 'MIT', url: 'https://tailwindcss.com' },
-    { name: 'class-variance-authority', license: 'MIT', url: 'https://cva.style' },
-    { name: 'clsx', license: 'MIT', url: 'https://github.com/lukeed/clsx' },
-    { name: 'tailwind-merge', license: 'MIT', url: 'https://github.com/dcastil/tailwind-merge' },
-  ]},
-  { category: '动画', items: [
-    { name: 'gsap', license: 'see site', url: 'https://gsap.com' },
-    { name: '@gsap/react', license: 'see site', url: 'https://gsap.com' },
-  ]},
-  { category: '渲染与展示', items: [
-    { name: 'react-markdown', license: 'MIT', url: 'https://github.com/remarkjs/react-markdown' },
-    { name: 'rehype-raw', license: 'MIT', url: 'https://github.com/rehypejs/rehype-raw' },
-    { name: 'remark-gfm', license: 'MIT', url: 'https://github.com/remarkjs/remark-gfm' },
-    { name: 'skinview3d', license: 'MIT', url: 'https://github.com/bs-community/skinview3d' },
-  ]},
 ]
 ---
 
@@ -90,16 +33,16 @@ const FRONTEND_DEPS = [
     <!-- App Info -->
     <div class="mb-4 rounded-xl border border-border bg-card p-6">
       <div class="flex items-center gap-4">
-        <img src="/logo.svg" alt={APP_INFO.name} class="h-14 w-14 rounded-2xl" />
+        <img src="/logo.svg" alt="Qomicex Launcher" class="h-14 w-14 rounded-2xl" />
         <div class="min-w-0 flex-1">
-          <div class="text-lg font-semibold">{APP_INFO.name}</div>
-          <div class="text-sm text-muted-foreground">版本 {APP_INFO.version}</div>
+          <div class="text-lg font-semibold">Qomicex Launcher</div>
+          <div class="text-sm text-muted-foreground">版本 {latestPre ? `${latestPre.version}${latestPre.prerelease ? ' (测试版)' : ''}` : latestStable?.version ?? '...'}</div>
         </div>
-        <a href={REPOSITORY_URL} target="_blank" class="inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground">
+        <a href="https://github.com/Qomicex-Public/Qomicex.Tauri" target="_blank" class="inline-flex h-7 items-center gap-1.5 rounded-md px-2.5 text-xs font-medium transition-colors hover:bg-accent hover:text-accent-foreground">
           <Icon name="fa6-brands:github" class="size-3" />查看仓库
         </a>
       </div>
-      <p class="mt-3 text-sm leading-relaxed text-muted-foreground">{APP_INFO.description}</p>
+      <p class="mt-3 text-sm leading-relaxed text-muted-foreground">一个现代化的 Minecraft 启动器，支持多版本管理、模组加载器兼容、账户管理、内网穿透联机等功能。完全开源，使用 GPL-3.0 许可协议。</p>
     </div>
 
     <!-- Version Info -->
@@ -109,7 +52,7 @@ const FRONTEND_DEPS = [
         <div class="grid grid-cols-2 gap-3">
           {latestStable && <div><div class="text-xs text-muted-foreground">正式版</div><div class="mt-0.5 font-medium">{latestStable.version}</div></div>}
           {latestPre && <div><div class="text-xs text-muted-foreground">测试版</div><div class="mt-0.5 font-medium">{latestPre.version}</div></div>}
-          {!latestStable && !latestPre && <div><div class="text-xs text-muted-foreground">应用版本</div><div class="mt-0.5 font-medium">{APP_INFO.version}</div></div>}
+          {!latestStable && !latestPre && <div><div class="text-xs text-muted-foreground">应用版本</div><div class="mt-0.5 font-medium">...</div></div>}
           <div><div class="text-xs text-muted-foreground">许可协议</div><div class="mt-0.5 font-medium"><a href="https://www.gnu.org/licenses/gpl-3.0.en.html" target="_blank" class="text-primary underline underline-offset-2">GPL-3.0</a></div></div>
         </div>
       </div>
@@ -134,40 +77,39 @@ const FRONTEND_DEPS = [
       </div>
     </div>
 
-    <!-- Services Credits -->
+    <!-- Services -->
     <div class="mb-4 rounded-xl border border-border bg-card p-6">
       <h2 class="mb-3 text-base font-semibold">
         <Icon name="lucide:heart" class="mr-1.5 inline size-4 align-text-bottom text-destructive" />鸣谢
       </h2>
       <div class="grid grid-cols-1 gap-1 sm:grid-cols-2">
         {SERVICES.map(svc => {
-          const ext = svc.name === 'Modrinth' ? 'svg' : 'png';
-          const file = svc.name === 'Minecraft 官网' ? 'minecraft' : svc.name.toLowerCase();
-          const iconFile = `/services/${file}.${ext}`;
+          const ext = svc.name === 'Modrinth' ? 'svg' : 'png'
+          const file = svc.name === 'Minecraft 官网' ? 'minecraft' : svc.name.toLowerCase()
           return (
           <a href={svc.url} target="_blank" class="flex items-center gap-3 rounded-lg px-3 py-2.5 text-left text-sm transition-colors hover:bg-accent">
-            <img src={iconFile} alt={svc.name} class="size-6 shrink-0 rounded object-contain" />
+            <img src={`/services/${file}.${ext}`} alt={svc.name} class="size-6 shrink-0 rounded object-contain" />
             <div class="min-w-0 flex-1">
               <div class="font-medium">{svc.name}</div>
               <div class="truncate text-xs text-muted-foreground">{svc.desc}</div>
             </div>
             <Icon name="lucide:external-link" class="size-3 shrink-0 text-muted-foreground/50" />
           </a>
-          );
+          )
         })}
       </div>
     </div>
 
-    <!-- Reference Projects -->
+    <!-- References -->
     <div class="mb-4 rounded-xl border border-border bg-card p-6">
       <h2 class="mb-3 text-base font-semibold">参考项目</h2>
       <div class="space-y-1">
-        {REFERENCE_PROJECTS.map(proj => (
-          <a href={proj.url} target="_blank" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent">
+        {REFERENCES.map(r => (
+          <a href={r.url} target="_blank" class="flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent">
             <Icon name="fa6-brands:github" class="size-4 shrink-0 text-muted-foreground" />
             <div class="min-w-0 flex-1">
-              <div class="font-medium">{proj.name}</div>
-              <div class="truncate text-xs text-muted-foreground">{proj.desc}</div>
+              <div class="font-medium">{r.name}</div>
+              <div class="truncate text-xs text-muted-foreground">{r.desc}</div>
             </div>
             <Icon name="lucide:external-link" class="size-3 shrink-0 text-muted-foreground/50" />
           </a>
@@ -175,62 +117,6 @@ const FRONTEND_DEPS = [
       </div>
     </div>
 
-    <!-- Backend Dependencies -->
-    <div class="mb-4 rounded-xl border border-border bg-card p-6">
-      <h2 class="mb-3 text-base font-semibold">后端依赖</h2>
-      <div class="space-y-1">
-        {BACKEND_DEPS.map(group => (
-          <details class="group">
-            <summary class="flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent">
-              <span>{group.category}</span>
-              <span class="flex items-center gap-2">
-                <span class="inline-flex items-center rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-semibold text-secondary-foreground">{group.items.length}</span>
-                <Icon name="lucide:chevron-right" class="size-3 text-muted-foreground transition-transform group-open:rotate-90" />
-              </span>
-            </summary>
-            <div class="mt-1 space-y-1 pl-2">
-              {group.items.map(dep => (
-                <a href={dep.url} target="_blank" class={`flex items-center justify-between rounded-lg px-3 py-1.5 text-xs transition-colors ${dep.license === '自研' ? 'bg-primary/5' : 'hover:bg-accent'}`}>
-                  <span class="flex items-center gap-2">
-                    <span class="text-muted-foreground">{dep.name}</span>
-                    {dep.license === '自研' && <span class="inline-flex items-center rounded border border-primary/30 px-1 py-0 text-[9px] font-medium text-primary">自研</span>}
-                  </span>
-                  <Icon name="lucide:external-link" class="size-2.5 text-muted-foreground/50" />
-                </a>
-              ))}
-            </div>
-          </details>
-        ))}
-      </div>
-    </div>
-
-    <!-- Frontend Dependencies -->
-    <div class="mb-4 rounded-xl border border-border bg-card p-6">
-      <h2 class="mb-3 text-base font-semibold">前端依赖</h2>
-      <div class="space-y-1">
-        {FRONTEND_DEPS.map(group => (
-          <details class="group">
-            <summary class="flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-sm font-medium transition-colors hover:bg-accent">
-              <span>{group.category}</span>
-              <span class="flex items-center gap-2">
-                <span class="inline-flex items-center rounded-md border border-border bg-secondary px-2 py-0.5 text-[10px] font-semibold text-secondary-foreground">{group.items.length}</span>
-                <Icon name="lucide:chevron-right" class="size-3 text-muted-foreground transition-transform group-open:rotate-90" />
-              </span>
-            </summary>
-            <div class="mt-1 space-y-1 pl-2">
-              {group.items.map(dep => (
-                <a href={dep.url} target="_blank" class="flex items-center justify-between rounded-lg px-3 py-1.5 text-xs transition-colors hover:bg-accent">
-                  <span class="text-muted-foreground">{dep.name}</span>
-                  <span class="flex items-center gap-2">
-                    <span class="text-muted-foreground/70">{dep.license}</span>
-                    <Icon name="lucide:external-link" class="size-2.5 text-muted-foreground/50" />
-                  </span>
-                </a>
-              ))}
-            </div>
-          </details>
-        ))}
-      </div>
-    </div>
+    <p class="text-center text-xs text-muted-foreground">详细版本信息与依赖列表请在启动器「关于」页面查看。</p>
   </section>
 </Base>
