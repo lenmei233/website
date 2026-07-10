@@ -10,14 +10,14 @@ const releases = [
 <Base title="更新日志">
   <section class="mx-auto max-w-3xl px-4 py-16">
     <h1 class="mb-8 text-3xl font-bold">更新日志</h1>
-    <div class="space-y-6">
+    <div class="space-y-4">
       {releases.map(r => (
-        <div class="rounded-xl border border-[var(--color-border)] bg-[var(--color-card)] p-5">
+        <div class="rounded-xl border border-border bg-card p-5">
           <div class="mb-3 flex items-baseline gap-3">
             <h2 class="text-lg font-semibold">v{r.version}</h2>
-            <span class="text-xs text-[var(--color-muted-fg)]">{r.date}</span>
+            <span class="text-xs text-muted-foreground">{r.date}</span>
           </div>
-          <ul class="space-y-1 text-sm text-[var(--color-muted-fg)]">
+          <ul class="space-y-1 text-sm text-muted-foreground">
             {r.changes.map(c => <li>• {c}</li>)}
           </ul>
         </div>

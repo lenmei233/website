@@ -16,16 +16,14 @@ const faqs = [
 <Base title="常见问题">
   <section class="mx-auto max-w-3xl px-4 py-16">
     <h1 class="mb-8 text-3xl font-bold">常见问题</h1>
-    <div class="space-y-3">
+    <div class="space-y-2">
       {faqs.map(faq => (
-        <details class="group rounded-xl border border-[var(--color-border)] bg-[var(--color-card)]">
-          <summary class="flex cursor-pointer items-center justify-between p-4 font-medium transition-colors hover:text-[var(--color-primary)]">
+        <details class="group rounded-xl border border-border bg-card">
+          <summary class="flex cursor-pointer items-center justify-between p-4 font-medium transition-colors hover:text-primary">
             {faq.q}
-            <svg class="size-4 shrink-0 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M6 9l6 6 6-6" />
-            </svg>
+            <svg class="size-4 shrink-0 transition-transform group-open:rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9l6 6 6-6" /></svg>
           </summary>
-          <div class="border-t border-[var(--color-border)] px-4 py-3 text-sm text-[var(--color-muted-fg)] leading-relaxed">
+          <div class="border-t border-border px-4 py-3 text-sm text-muted-foreground leading-relaxed">
             {faq.a}
           </div>
         </details>

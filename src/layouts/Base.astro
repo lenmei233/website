@@ -13,7 +13,7 @@ import Footer from '../components/Footer.astro';
     <meta name="description" content="Qomicex Launcher — 一个现代化的 Minecraft 启动器" />
     <title>{Astro.props.title ? `${Astro.props.title} — Qomicex` : 'Qomicex Launcher'}</title>
   </head>
-  <body class="font-sans antialiased">
+  <body class="bg-background text-foreground">
     <Header />
     <main class="flex-1">
       <slot />

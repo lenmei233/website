@@ -14,15 +14,12 @@ const sidebar = [
 ---
 
 <Base title={title}>
-  <div class="mx-auto flex w-full max-w-6xl gap-8 px-4 py-10">
-    <nav class="hidden w-48 shrink-0 md:block">
+  <div class="mx-auto flex w-full max-w-5xl gap-8 px-4 py-10">
+    <nav class="hidden w-44 shrink-0 md:block">
       <ul class="space-y-1">
         {sidebar.map(item => (
           <li>
-            <a
-              href={item.href}
-              class="block rounded-md px-3 py-2 text-sm transition-colors hover:bg-[var(--color-card)] hover:text-[var(--color-primary)]"
-            >
+            <a href={item.href} class="block rounded-md px-3 py-2 text-sm transition-colors hover:bg-accent hover:text-accent-foreground">
               {item.label}
             </a>
           </li>
@@ -31,7 +28,7 @@ const sidebar = [
     </nav>
     <article class="min-w-0 flex-1">
       <h1 class="mb-6 text-2xl font-bold">{title}</h1>
-      <div class="prose-custom">
+      <div class="prose prose-invert max-w-none text-muted-foreground">
         <slot />
       </div>
     </article>
