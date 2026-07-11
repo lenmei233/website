@@ -4,6 +4,7 @@ export const links = [
   { href: '/download', label: '下载' },
   { href: '/docs/', label: '文档' },
   { href: '/about', label: '关于' },
+  { href: 'https://ifdian.net/a/QomicexLauncher', label: '爱发电', external: true },
 ];
 ---
 
@@ -17,7 +18,7 @@ export const links = [
       <ul class="flex items-center gap-1">
         {links.map(link => (
           <li>
-            <a href={link.href} class="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
+            <a href={link.href} target={link.external ? '_blank' : undefined} rel={link.external ? 'noopener' : undefined} class="rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground">
               {link.label}
             </a>
           </li>
