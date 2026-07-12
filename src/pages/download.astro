@@ -100,6 +100,11 @@ const preAssets = pre?.assets ?? []
       <div class="flex gap-2" id="dl-archs"></div>
     </div>
 
+    <div id="dl-type-section" class="mb-5 opacity-0 translate-y-2 transition-all duration-500 ease-out pointer-events-none">
+      <p class="mb-2 text-xs text-muted-foreground">选择安装包类型</p>
+      <div class="flex gap-2" id="dl-types"></div>
+    </div>
+
     <!-- Download source -->
     <div id="dl-source-section" class="mb-5">
       <p class="mb-2 text-xs text-muted-foreground">下载源</p>
@@ -133,7 +138,7 @@ const preAssets = pre?.assets ?? []
 
 <script data-astro-rerun define:vars={{ stableTag, preTag, stableAssets, preAssets }}>
 (function () {
-  function matchAsset(assets, plat, arch) {
+  function matchAsset(assets, plat, arch, pkgType) {
     var candidates = assets.filter(function (a) {
       if (a.name.endsWith('.sig') || a.name.endsWith('.json')) return false
       if (a.name.includes('update-fragment') || a.name === 'latest.json' || a.name === 'beta.json') return false
@@ -144,12 +149,17 @@ const preAssets = pre?.assets ?? []
         return /x64/i.test(a.name) && !/arm|aarch64/i.test(a.name)
       }
       if (plat === 'macos') {
-        if (arch === 'Apple Silicon (ARM64)') return a.platform === 'macos-arm'
-        return a.platform === 'macos-intel'
+        if (arch === 'Apple Silicon (ARM64)' && a.platform !== 'macos-arm') return false
+        if (arch === 'Intel (x64)' && a.platform !== 'macos-intel') return false
+        if (pkgType === 'DMG' && !a.name.endsWith('.dmg')) return false
+        if (pkgType === 'TAR.GZ' && !a.name.endsWith('.tar.gz')) return false
+        return true
       }
       if (plat === 'linux') {
         if (a.platform !== 'linux') return false
-        if (!a.name.endsWith('.AppImage')) return false
+        if (pkgType === 'AppImage' && !a.name.endsWith('.AppImage')) return false
+        if (pkgType === 'DEB' && !a.name.endsWith('.deb')) return false
+        if (pkgType === 'RPM' && !a.name.endsWith('.rpm')) return false
         if (arch === 'ARM64') return /arm|aarch64/i.test(a.name)
         return /x64|x86_64|amd64/i.test(a.name)
       }
@@ -163,11 +173,11 @@ const preAssets = pre?.assets ?? []
     return m ? m[1] : ''
   }
 
-  var PLATFORMS = [
-    { id: 'windows', archs: { 'x64': 'x64-setup.exe', 'ARM64': 'arm64-setup.exe' } },
-    { id: 'macos', archs: { 'Intel (x64)': '.dmg', 'Apple Silicon (ARM64)': '.dmg' } },
-    { id: 'linux', archs: { 'x64': 'amd64.AppImage', 'ARM64': 'arm64.AppImage' } },
-  ]
+  var PLATFORMS = {
+    windows: { archLabels: ['x64', 'ARM64'], typeLabels: ['EXE'] },
+    macos: { archLabels: ['Intel (x64)', 'Apple Silicon (ARM64)'], typeLabels: ['DMG', 'TAR.GZ'] },
+    linux: { archLabels: ['x64', 'ARM64'], typeLabels: ['AppImage', 'DEB', 'RPM'] },
+  }
   var isPre = false
 
   function detect() {
@@ -202,6 +212,8 @@ const preAssets = pre?.assets ?? []
   var closeBtn = document.getElementById('dl-close')
   var archSection = document.getElementById('dl-arch-section')
   var archContainer = document.getElementById('dl-archs')
+  var typeSection = document.getElementById('dl-type-section')
+  var typeContainer = document.getElementById('dl-types')
   var sourceSection = document.getElementById('dl-source-section')
   var sourceContainer = document.getElementById('dl-sources')
   var linkSection = document.getElementById('dl-link-section')
@@ -210,6 +222,44 @@ const preAssets = pre?.assets ?? []
   var thanks = document.getElementById('dl-thanks')
   var thanksClose = document.getElementById('dl-thanks-close')
   var retry = document.getElementById('dl-retry')
+
+  var currentType = ''
+
+  function getTypeLabels() { var c = PLATFORMS[currentPlat]; return c ? c.typeLabels : [] }
+
+  function initPlatformType() {
+    var labels = getTypeLabels()
+    if (labels.length > 1) {
+      renderTypes(labels, labels[0])
+      typeSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
+    } else {
+      currentType = labels[0] || ''
+      typeSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
+    }
+  }
+
+  function renderTypes(typeLabels, selected) {
+    typeContainer.innerHTML = ''
+    typeLabels.forEach(function (label) {
+      var pill = document.createElement('button')
+      pill.className = 'dl-type cursor-pointer rounded-lg border px-3.5 py-2 text-xs font-medium transition-all active:scale-[0.97] ' +
+        (label === selected ? 'border-primary/40 bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:text-foreground')
+      pill.textContent = label
+      pill.setAttribute('data-type', label)
+      pill.addEventListener('click', function () { selectType(label) })
+      typeContainer.appendChild(pill)
+    })
+    currentType = selected
+  }
+
+  function selectType(label) {
+    currentType = label
+    document.querySelectorAll('.dl-type').forEach(function (p) {
+      p.className = 'dl-type cursor-pointer rounded-lg border px-3.5 py-2 text-xs font-medium transition-all active:scale-[0.97] ' +
+        (p.getAttribute('data-type') === label ? 'border-primary/40 bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:text-foreground')
+    })
+    updateLink()
+  }
 
   function getAssets() { return isPre ? preAssets : stableAssets }
 
@@ -250,12 +300,13 @@ const preAssets = pre?.assets ?? []
     setTimeout(function () { dialog.classList.remove('scale-95') }, 30)
     renderSources(currentSourceIdx)
     highlightPlat(detected.plat)
-    var platData = PLATFORMS.find(function (p) { return p.id === detected.plat })
-    if (platData) {
+    var platConfig = PLATFORMS[detected.plat]
+    if (platConfig) {
       currentPlat = detected.plat
       currentArch = detected.arch
-      renderArchs(platData.archs, detected.arch)
-      showArchAndLink()
+      renderArchs(platConfig.archLabels, detected.arch)
+      initPlatformType()
+      showArchTypeAndLink()
     }
   }
 
@@ -266,12 +317,13 @@ const preAssets = pre?.assets ?? []
     dlPlats.style.display = ''
     closeBtn.style.display = ''
     sourceSection.style.display = ''
-    hideArchAndLink()
+    hideArchTypeAndLink()
     setTimeout(function () { overlay.classList.add('opacity-0', 'pointer-events-none') }, 200)
   }
 
-  function hideArchAndLink() {
+  function hideArchTypeAndLink() {
     archSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
+    typeSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
     linkSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
     link.classList.add('hidden')
   }
@@ -281,6 +333,7 @@ const preAssets = pre?.assets ?? []
     closeBtn.style.display = 'none'
     sourceSection.style.display = 'none'
     archSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
+    typeSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
     linkSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
     link.classList.add('hidden')
     thanks.classList.remove('hidden')
@@ -296,9 +349,9 @@ const preAssets = pre?.assets ?? []
     })
   }
 
-  function renderArchs(archMap, selected) {
+  function renderArchs(archList, selected) {
     archContainer.innerHTML = ''
-    Object.keys(archMap).forEach(function (label) {
+    archList.forEach(function (label) {
       var pill = document.createElement('button')
       pill.className = 'dl-arch cursor-pointer rounded-lg border px-3.5 py-2 text-xs font-medium transition-all active:scale-[0.97] ' +
         (label === selected ? 'border-primary/40 bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:text-foreground')
@@ -319,9 +372,13 @@ const preAssets = pre?.assets ?? []
     updateLink()
   }
 
-  function showArchAndLink() {
+  function showArchTypeAndLink() {
     archSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
     setTimeout(function () {
+      var labels = getTypeLabels()
+      if (labels.length > 1) {
+        typeSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
+      }
       linkSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
       updateLink()
     }, 250)
@@ -336,14 +393,14 @@ const preAssets = pre?.assets ?? []
 
   function updateLink() {
     var assets = getAssets()
-    var match = matchAsset(assets, currentPlat, currentArch)
+    var match = matchAsset(assets, currentPlat, currentArch, currentType)
     if (match) {
       link.href = assetUrl(match)
-      link.textContent = '下载 ' + currentArch + ' .' + extLabel(match.name)
+      link.textContent = '下载 ' + currentArch + ' (' + currentType + ')'
       link.classList.remove('hidden')
     } else {
       link.href = 'https://github.com/Qomicex-Public/Qomicex.Tauri/releases/' + (getTag() || 'latest')
-      link.textContent = '下载'
+      link.textContent = '下载 ' + currentType
       link.classList.remove('hidden')
     }
   }
@@ -356,8 +413,8 @@ const preAssets = pre?.assets ?? []
       if (id === currentPlat) return
       currentPlat = id
       highlightPlat(id)
-      var platData = PLATFORMS.find(function (p) { return p.id === id })
-      if (!platData) return
+      var platConfig = PLATFORMS[id]
+      if (!platConfig) return
       var ua = navigator.userAgent
       var arch
       if (id === 'macos') {
@@ -365,10 +422,11 @@ const preAssets = pre?.assets ?? []
       } else {
         arch = (/arm|aarch64/i.test(ua)) ? 'ARM64' : 'x64'
       }
-      hideArchAndLink()
+      hideArchTypeAndLink()
       setTimeout(function () {
-        renderArchs(platData.archs, arch)
-        showArchAndLink()
+        renderArchs(platConfig.archLabels, arch)
+        initPlatformType()
+        showArchTypeAndLink()
         currentArch = arch
       }, 300)
     })
