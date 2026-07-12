@@ -178,7 +178,6 @@ const preAssets = pre?.assets ?? []
     macos: { archLabels: ['Intel (x64)', 'Apple Silicon (ARM64)'], typeLabels: ['DMG', 'TAR.GZ'] },
     linux: { archLabels: ['x64', 'ARM64'], typeLabels: ['AppImage', 'DEB', 'RPM'] },
   }
-  var isPre = false
 
   function detect() {
     var ua = navigator.userAgent
@@ -199,48 +198,54 @@ const preAssets = pre?.assets ?? []
     { label: '镜像源', id: 'mirror' },
     { label: 'GitHub 直连', id: 'direct' },
   ]
-  var currentSourceIdx = 0
-  var closeTimer = null
 
-  var detected = detect()
-  var currentPlat = detected.plat
-  var currentArch = detected.arch
+  // lazily re-acquired state
+  var $ = {}
+  function acquire() {
+    $.isPre = false
+    $.currentSourceIdx = 0
+    $.closeTimer = null
+    $.currentType = ''
+    var d = detect()
+    $.currentPlat = d.plat
+    $.currentArch = d.arch
+    $.btn = document.getElementById('dl-btn')
+    $.overlay = document.getElementById('dl-overlay')
+    $.backdrop = document.getElementById('dl-backdrop')
+    $.dialog = document.getElementById('dl-dialog')
+    $.closeBtn = document.getElementById('dl-close')
+    $.archSection = document.getElementById('dl-arch-section')
+    $.archContainer = document.getElementById('dl-archs')
+    $.typeSection = document.getElementById('dl-type-section')
+    $.typeContainer = document.getElementById('dl-types')
+    $.sourceSection = document.getElementById('dl-source-section')
+    $.sourceContainer = document.getElementById('dl-sources')
+    $.linkSection = document.getElementById('dl-link-section')
+    $.dlPlats = document.getElementById('dl-plats')
+    $.link = document.getElementById('dl-link')
+    $.thanks = document.getElementById('dl-thanks')
+    $.thanksClose = document.getElementById('dl-thanks-close')
+    $.retry = document.getElementById('dl-retry')
+    $.preBtn = document.getElementById('dl-pre-btn')
+  }
 
-  var btn = document.getElementById('dl-btn')
-  var overlay = document.getElementById('dl-overlay')
-  var backdrop = document.getElementById('dl-backdrop')
-  var dialog = document.getElementById('dl-dialog')
-  var closeBtn = document.getElementById('dl-close')
-  var archSection = document.getElementById('dl-arch-section')
-  var archContainer = document.getElementById('dl-archs')
-  var typeSection = document.getElementById('dl-type-section')
-  var typeContainer = document.getElementById('dl-types')
-  var sourceSection = document.getElementById('dl-source-section')
-  var sourceContainer = document.getElementById('dl-sources')
-  var linkSection = document.getElementById('dl-link-section')
-  var dlPlats = document.getElementById('dl-plats')
-  var link = document.getElementById('dl-link')
-  var thanks = document.getElementById('dl-thanks')
-  var thanksClose = document.getElementById('dl-thanks-close')
-  var retry = document.getElementById('dl-retry')
-
-  var currentType = ''
-
-  function getTypeLabels() { var c = PLATFORMS[currentPlat]; return c ? c.typeLabels : [] }
+  function getAssets() { return $.isPre ? preAssets : stableAssets }
+  function getTag() { return $.isPre ? preTag : stableTag }
+  function getTypeLabels() { var c = PLATFORMS[$.currentPlat]; return c ? c.typeLabels : [] }
 
   function initPlatformType() {
     var labels = getTypeLabels()
     if (labels.length > 1) {
       renderTypes(labels, labels[0])
-      typeSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
+      $.typeSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
     } else {
-      currentType = labels[0] || ''
-      typeSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
+      $.currentType = labels[0] || ''
+      $.typeSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
     }
   }
 
   function renderTypes(typeLabels, selected) {
-    typeContainer.innerHTML = ''
+    $.typeContainer.innerHTML = ''
     typeLabels.forEach(function (label) {
       var pill = document.createElement('button')
       pill.className = 'dl-type cursor-pointer rounded-lg border px-3.5 py-2 text-xs font-medium transition-all active:scale-[0.97] ' +
@@ -248,13 +253,13 @@ const preAssets = pre?.assets ?? []
       pill.textContent = label
       pill.setAttribute('data-type', label)
       pill.addEventListener('click', function () { selectType(label) })
-      typeContainer.appendChild(pill)
+      $.typeContainer.appendChild(pill)
     })
-    currentType = selected
+    $.currentType = selected
   }
 
   function selectType(label) {
-    currentType = label
+    $.currentType = label
     document.querySelectorAll('.dl-type').forEach(function (p) {
       p.className = 'dl-type cursor-pointer rounded-lg border px-3.5 py-2 text-xs font-medium transition-all active:scale-[0.97] ' +
         (p.getAttribute('data-type') === label ? 'border-primary/40 bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:text-foreground')
@@ -262,10 +267,8 @@ const preAssets = pre?.assets ?? []
     updateLink()
   }
 
-  function getAssets() { return isPre ? preAssets : stableAssets }
-
   function renderSources(selectedIdx) {
-    sourceContainer.innerHTML = ''
+    $.sourceContainer.innerHTML = ''
     sources.forEach(function (s, i) {
       var btn = document.createElement('button')
       btn.className = 'dl-source cursor-pointer rounded-lg border px-3 py-1.5 text-xs font-medium transition-all active:scale-[0.97] ' +
@@ -273,12 +276,12 @@ const preAssets = pre?.assets ?? []
       btn.textContent = s.label
       btn.setAttribute('data-src', i)
       btn.addEventListener('click', function () { selectSource(i) })
-      sourceContainer.appendChild(btn)
+      $.sourceContainer.appendChild(btn)
     })
   }
 
   function selectSource(idx) {
-    currentSourceIdx = idx
+    $.currentSourceIdx = idx
     document.querySelectorAll('.dl-source').forEach(function (b) {
       var i = parseInt(b.getAttribute('data-src'))
       b.className = 'dl-source cursor-pointer rounded-lg border px-3 py-1.5 text-xs font-medium transition-all active:scale-[0.97] ' +
@@ -288,61 +291,61 @@ const preAssets = pre?.assets ?? []
   }
 
   function openModal(isPreMode) {
-    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null }
+    if ($.closeTimer) { clearTimeout($.closeTimer); $.closeTimer = null }
     if (isPreMode === undefined) isPreMode = false
-    isPre = isPreMode
-    thanks.classList.add('hidden')
-    thanks.classList.remove('flex')
-    dlPlats.style.display = ''
-    closeBtn.style.display = ''
-    sourceSection.style.display = ''
-    archSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
-    typeSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
-    linkSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
-    overlay.classList.remove('opacity-0', 'pointer-events-none')
-    setTimeout(function () { dialog.classList.remove('scale-95') }, 30)
-    renderSources(currentSourceIdx)
-    highlightPlat(detected.plat)
-    var platConfig = PLATFORMS[detected.plat]
+    $.isPre = isPreMode
+    $.thanks.classList.add('hidden')
+    $.thanks.classList.remove('flex')
+    $.dlPlats.style.display = ''
+    $.closeBtn.style.display = ''
+    $.sourceSection.style.display = ''
+    $.archSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
+    $.typeSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
+    $.linkSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
+    $.overlay.classList.remove('opacity-0', 'pointer-events-none')
+    setTimeout(function () { $.dialog.classList.remove('scale-95') }, 30)
+    renderSourceList()
+    highlightPlat($.currentPlat)
+    var platConfig = PLATFORMS[$.currentPlat]
     if (platConfig) {
-      currentPlat = detected.plat
-      currentArch = detected.arch
-      renderArchs(platConfig.archLabels, detected.arch)
+      renderArchs(platConfig.archLabels, $.currentArch)
       initPlatformType()
       showArchTypeAndLink()
     }
   }
 
+  function renderSourceList() { renderSources($.currentSourceIdx) }
+
   function closeModal() {
-    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null }
-    dialog.classList.add('scale-95')
-    thanks.classList.add('hidden')
-    thanks.classList.remove('flex')
-    dlPlats.style.display = ''
-    closeBtn.style.display = ''
-    sourceSection.style.display = ''
+    if ($.closeTimer) { clearTimeout($.closeTimer); $.closeTimer = null }
+    $.dialog.classList.add('scale-95')
+    $.thanks.classList.add('hidden')
+    $.thanks.classList.remove('flex')
+    $.dlPlats.style.display = ''
+    $.closeBtn.style.display = ''
+    $.sourceSection.style.display = ''
     hideArchTypeAndLink()
-    closeTimer = setTimeout(function () { overlay.classList.add('opacity-0', 'pointer-events-none') }, 200)
+    $.closeTimer = setTimeout(function () { $.overlay.classList.add('opacity-0', 'pointer-events-none') }, 200)
   }
 
   function hideArchTypeAndLink() {
-    archSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
-    typeSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
-    linkSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
-    link.classList.add('hidden')
+    $.archSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
+    $.typeSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
+    $.linkSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
+    $.link.classList.add('hidden')
   }
 
   function showThanks() {
-    dlPlats.style.display = 'none'
-    closeBtn.style.display = 'none'
-    sourceSection.style.display = 'none'
-    archSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
-    typeSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
-    linkSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
-    link.classList.add('hidden')
-    thanks.classList.remove('hidden')
-    thanks.classList.add('flex')
-    retry.href = link.href
+    $.dlPlats.style.display = 'none'
+    $.closeBtn.style.display = 'none'
+    $.sourceSection.style.display = 'none'
+    $.archSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
+    $.typeSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
+    $.linkSection.classList.add('opacity-0', 'translate-y-2', 'pointer-events-none')
+    $.link.classList.add('hidden')
+    $.thanks.classList.remove('hidden')
+    $.thanks.classList.add('flex')
+    $.retry.href = $.link.href
   }
 
   function highlightPlat(id) {
@@ -354,7 +357,7 @@ const preAssets = pre?.assets ?? []
   }
 
   function renderArchs(archList, selected) {
-    archContainer.innerHTML = ''
+    $.archContainer.innerHTML = ''
     archList.forEach(function (label) {
       var pill = document.createElement('button')
       pill.className = 'dl-arch cursor-pointer rounded-lg border px-3.5 py-2 text-xs font-medium transition-all active:scale-[0.97] ' +
@@ -362,13 +365,13 @@ const preAssets = pre?.assets ?? []
       pill.textContent = label
       pill.setAttribute('data-arch', label)
       pill.addEventListener('click', function () { selectArch(label) })
-      archContainer.appendChild(pill)
+      $.archContainer.appendChild(pill)
     })
-    currentArch = selected
+    $.currentArch = selected
   }
 
   function selectArch(label) {
-    currentArch = label
+    $.currentArch = label
     document.querySelectorAll('.dl-arch').forEach(function (p) {
       p.className = 'dl-arch cursor-pointer rounded-lg border px-3.5 py-2 text-xs font-medium transition-all active:scale-[0.97] ' +
         (p.getAttribute('data-arch') === label ? 'border-primary/40 bg-primary/5 text-primary' : 'border-border text-muted-foreground hover:text-foreground')
@@ -377,19 +380,19 @@ const preAssets = pre?.assets ?? []
   }
 
   function showArchTypeAndLink() {
-    archSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
+    $.archSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
     setTimeout(function () {
       var labels = getTypeLabels()
       if (labels.length > 1) {
-        typeSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
+        $.typeSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
       }
-      linkSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
+      $.linkSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
       updateLink()
     }, 250)
   }
 
   function assetUrl(match) {
-    var s = sources[currentSourceIdx]
+    var s = sources[$.currentSourceIdx]
     if (s.id === 'direct') return match.url
     if (s.id === 'mirror') return 'https://gh.lenmei233.top/' + match.url
     return 'https://gh-proxy.com/' + match.url
@@ -397,55 +400,61 @@ const preAssets = pre?.assets ?? []
 
   function updateLink() {
     var assets = getAssets()
-    var match = matchAsset(assets, currentPlat, currentArch, currentType)
+    var match = matchAsset(assets, $.currentPlat, $.currentArch, $.currentType)
     if (match) {
-      link.href = assetUrl(match)
-      link.textContent = '下载 ' + currentArch + ' (' + currentType + ')'
-      link.classList.remove('hidden')
+      $.link.href = assetUrl(match)
+      $.link.textContent = '下载 ' + $.currentArch + ' (' + $.currentType + ')'
+      $.link.classList.remove('hidden')
     } else {
-      link.href = 'https://github.com/Qomicex-Public/Qomicex.Tauri/releases/' + (getTag() || 'latest')
-      link.textContent = '下载 ' + currentType
-      link.classList.remove('hidden')
+      $.link.href = 'https://github.com/Qomicex-Public/Qomicex.Tauri/releases/' + (getTag() || 'latest')
+      $.link.textContent = '下载 ' + $.currentType
+      $.link.classList.remove('hidden')
     }
   }
 
-  function getTag() { return isPre ? preTag : stableTag }
-
-  document.querySelectorAll('.dl-plat').forEach(function (b) {
-    b.addEventListener('click', function () {
-      var id = b.getAttribute('data-plat')
-      if (id === currentPlat) return
-      currentPlat = id
-      highlightPlat(id)
-      var platConfig = PLATFORMS[id]
-      if (!platConfig) return
-      var ua = navigator.userAgent
-      var arch
-      if (id === 'macos') {
-        arch = (/arm|aarch64/i.test(ua)) ? 'Apple Silicon (ARM64)' : 'Intel (x64)'
-      } else {
-        arch = (/arm|aarch64/i.test(ua)) ? 'ARM64' : 'x64'
-      }
-      hideArchTypeAndLink()
-      setTimeout(function () {
-        renderArchs(platConfig.archLabels, arch)
-        initPlatformType()
-        showArchTypeAndLink()
-        currentArch = arch
-      }, 300)
-    })
-  })
-
-  var preBtn = document.getElementById('dl-pre-btn')
-  if (preBtn) {
-    preBtn.addEventListener('click', function (e) { e.preventDefault(); openModal(true) })
+  function switchPlat(id) {
+    if (id === $.currentPlat) return
+    $.currentPlat = id
+    highlightPlat(id)
+    var platConfig = PLATFORMS[id]
+    if (!platConfig) return
+    var ua = navigator.userAgent
+    var arch
+    if (id === 'macos') {
+      arch = (/arm|aarch64/i.test(ua)) ? 'Apple Silicon (ARM64)' : 'Intel (x64)'
+    } else {
+      arch = (/arm|aarch64/i.test(ua)) ? 'ARM64' : 'x64'
+    }
+    hideArchTypeAndLink()
+    setTimeout(function () {
+      renderArchs(platConfig.archLabels, arch)
+      initPlatformType()
+      showArchTypeAndLink()
+      $.currentArch = arch
+    }, 300)
   }
 
-  link.addEventListener('click', function (e) { e.preventDefault(); window.open(link.href, '_blank'); showThanks() })
-  thanksClose.addEventListener('click', closeModal)
-  btn.addEventListener('click', function () { openModal(false) })
-  closeBtn.addEventListener('click', closeModal)
-  backdrop.addEventListener('click', closeModal)
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal() })
+  // --- event delegation (registered once per page lifecycle) ---
+  if (!window._downloadInit) {
+    window._downloadInit = true
+    document.addEventListener('click', function (e) {
+      var el = e.target.closest('#dl-btn, .dl-plat, .dl-arch, .dl-type, .dl-source, #dl-link, #dl-thanks-close, #dl-close, #dl-backdrop, #dl-pre-btn')
+      if (!el) return
+      if (el.id === 'dl-btn') { openModal(false); return }
+      if (el.id === 'dl-pre-btn') { e.preventDefault(); openModal(true); return }
+      if (el.classList.contains('dl-plat')) { switchPlat(el.getAttribute('data-plat')); return }
+      if (el.classList.contains('dl-arch')) { selectArch(el.getAttribute('data-arch')); return }
+      if (el.classList.contains('dl-type')) { selectType(el.getAttribute('data-type')); return }
+      if (el.classList.contains('dl-source')) { selectSource(parseInt(el.getAttribute('data-src'))); return }
+      if (el.id === 'dl-link') { e.preventDefault(); window.open($.link.href, '_blank'); showThanks(); return }
+      if (el.id === 'dl-thanks-close' || el.id === 'dl-close') { closeModal(); return }
+      if (el.id === 'dl-backdrop') { closeModal(); return }
+    })
+    document.addEventListener('keydown', function (e) { if (e.key === 'Escape') closeModal() })
+  }
+
+  acquire()
+  renderSources($.currentSourceIdx)
+  document.addEventListener('astro:page-load', acquire)
 })()
 </script>
