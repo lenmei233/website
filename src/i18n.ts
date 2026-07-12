@@ -28,6 +28,7 @@ const zh = {
   'docs.title': '文档',
   'docs.back': '返回文档首页',
   'docs.viewTutorial': '查看详细教程',
+  'docs.jump': '跳转到...',
   'docs.description': '了解如何使用 QML启动器 的所有功能。',
 
   'partners.title': '集成支持',
@@ -77,6 +78,7 @@ const en: Record<string, string> = {
   'docs.title': 'Docs',
   'docs.back': 'Back to docs home',
   'docs.viewTutorial': 'View tutorial',
+  'docs.jump': 'Jump to...',
   'docs.description': 'Learn about all features of QML Launcher.',
 
   'partners.title': 'Integrations',
