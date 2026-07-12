@@ -17,9 +17,10 @@ const features = [
   { img: '/screenshots/home.png', title: '极简主界面', desc: '清晰直观的布局，让一切操作都触手可及。', reversed: false },
   { img: '/screenshots/instances.png', title: '多实例管理', desc: '同时管理多个游戏实例，版本隔离、模组配置互不干扰。', reversed: true },
   { img: '/screenshots/accounts.png', title: '账户管理', desc: '支持多个 Minecraft 账户快捷切换，账号信息本地加密存储。', reversed: false },
-  { img: '/screenshots/resource-center.png', title: '资源中心', desc: '一站式获取模组、整合包、资源包，支持 CurseForge 和 Modrinth。', reversed: true },
-  { img: '/screenshots/download-instance.png', title: '高速下载', desc: '多线程分片下载，最大程度利用带宽，极速安装。', reversed: false },
-  { img: '/screenshots/instance-detail.png', title: '实例详情', desc: '细粒度管理每个实例的版本、模组、设置，掌控一切。', reversed: true },
+  { img: '/screenshots/download-instance.png', title: '版本列表', desc: '快速浏览并筛选可用的 Minecraft 版本，支持稳定版、测试版及不同加载器类型。', reversed: true },
+  { img: '/screenshots/resource-center.png', title: '资源中心', desc: '一站式获取模组、整合包、资源包，支持 CurseForge 和 Modrinth。', reversed: false },
+  { img: '/screenshots/download-management.png', title: '高速下载', desc: '多线程分片下载，最大程度利用带宽，极速安装。', reversed: true },
+  { img: '/screenshots/instance-detail.png', title: '实例详情', desc: '细粒度管理每个实例的版本、模组、设置，掌控一切。', reversed: false },
 ]
 
 const partners = [
@@ -66,7 +67,7 @@ const partners = [
           <div class={`w-full sm:w-1/2 ${f.reversed ? 'sm:order-2' : ''}`}>
             <div data-animate class="mb-4">
               <span class="inline-flex size-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
-                <Icon name={['lucide:layout-dashboard', 'lucide:layers', 'lucide:users', 'lucide:package', 'lucide:zap', 'lucide:sliders'][i]} class="size-5" />
+                <Icon name={['lucide:layout-dashboard', 'lucide:layers', 'lucide:users', 'lucide:file-stack', 'lucide:package', 'lucide:zap', 'lucide:sliders'][i]} class="size-5" />
               </span>
             </div>
             <h2 data-animate class="mb-3 text-2xl font-bold tracking-tight sm:text-3xl" style="transition-delay:80ms">{f.title}</h2>
@@ -76,6 +77,7 @@ const partners = [
                 ['多实例隔离', '高速下载', '一键配置'],
                 ['版本独立', '模组隔离', '快速切换'],
                 ['加密存储', '快速切换', '多账户'],
+                ['版本隔离', '加载器筛选', '稳定版/测试版'],
                 ['模组', '整合包', '资源包', '插件'],
                 ['分片下载', '断点续传', '带宽优化'],
                 ['版本管理', '模组管理', '启动参数'],
