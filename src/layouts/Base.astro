@@ -39,6 +39,11 @@ const zhUrl = lang === 'zh' ? canonical : `https://www.qomicex.top${Astro.url.pa
     <meta property="og:locale" content={lang === 'en' ? 'en_US' : 'zh_CN'} />
     {lang === 'zh' && <meta property="og:locale:alternate" content="en_US" />}
     <Analytics />
+    <script>
+      if (location.pathname === '/' && navigator.language.startsWith('en')) {
+        location.replace('/en/')
+      }
+    </script>
   </head>
   <body class="bg-background text-foreground">
     <Header lang={lang} />
