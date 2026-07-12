@@ -57,9 +57,11 @@ const zhUrl = lang === 'zh' ? canonical : `https://www.qomicex.top${Astro.url.pa
           if (e.isIntersecting) { e.target.classList.add('animate-visible'); observer.unobserve(e.target) }
         }
       }, { threshold: 0.1 })
-      document.addEventListener('astro:page-load', () => {
+      function observeAnimate() {
         for (const el of document.querySelectorAll('[data-animate]')) observer.observe(el)
-      })
+      }
+      observeAnimate()
+      document.addEventListener('astro:page-load', observeAnimate)
     </script>
   </body>
 </html>
