@@ -64,7 +64,7 @@ const preAssets = pre?.assets ?? []
                   <td class="py-2.5 pr-3 font-medium text-foreground">{p.os}</td>
                   <td class="py-2.5 pr-3">{p.arch}{p.note && <><br /><span class="text-muted-foreground/60">{p.note}</span></>}</td>
                   <td class="py-2.5 pr-3">{p.minVersion}</td>
-                  <td class="py-2.5 pr-3"><span class="text-green-600 dark:text-green-400">{p.status}</span></td>
+                  <td class="py-2.5 pr-3"><span class="text-green-600 dark:text-green-400">{lang === 'en' && p.status === '稳定' ? 'Stable' : p.status}</span></td>
                   <td class="py-2.5">{p.packageType}</td>
                 </tr>
               ))}
