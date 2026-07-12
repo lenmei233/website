@@ -200,6 +200,7 @@ const preAssets = pre?.assets ?? []
     { label: 'GitHub 直连', id: 'direct' },
   ]
   var currentSourceIdx = 0
+  var closeTimer = null
 
   var detected = detect()
   var currentPlat = detected.plat
@@ -287,6 +288,7 @@ const preAssets = pre?.assets ?? []
   }
 
   function openModal(isPreMode) {
+    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null }
     if (isPreMode === undefined) isPreMode = false
     isPre = isPreMode
     thanks.classList.add('hidden')
@@ -295,6 +297,7 @@ const preAssets = pre?.assets ?? []
     closeBtn.style.display = ''
     sourceSection.style.display = ''
     archSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
+    typeSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
     linkSection.classList.remove('opacity-0', 'translate-y-2', 'pointer-events-none')
     overlay.classList.remove('opacity-0', 'pointer-events-none')
     setTimeout(function () { dialog.classList.remove('scale-95') }, 30)
@@ -311,6 +314,7 @@ const preAssets = pre?.assets ?? []
   }
 
   function closeModal() {
+    if (closeTimer) { clearTimeout(closeTimer); closeTimer = null }
     dialog.classList.add('scale-95')
     thanks.classList.add('hidden')
     thanks.classList.remove('flex')
@@ -318,7 +322,7 @@ const preAssets = pre?.assets ?? []
     closeBtn.style.display = ''
     sourceSection.style.display = ''
     hideArchTypeAndLink()
-    setTimeout(function () { overlay.classList.add('opacity-0', 'pointer-events-none') }, 200)
+    closeTimer = setTimeout(function () { overlay.classList.add('opacity-0', 'pointer-events-none') }, 200)
   }
 
   function hideArchTypeAndLink() {
