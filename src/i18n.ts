@@ -10,6 +10,7 @@ const zh = {
   'nav.download': '下载',
   'nav.docs': '文档',
   'nav.about': '关于',
+  'nav.versions': '版本历史',
   'nav.afdian': '爱发电',
 
   'hero.desc': '一个现代化的 Minecraft 启动器，拥有',
@@ -49,6 +50,11 @@ const zh = {
   'dlmodal.sourceProxy': '代理下载 (推荐)',
   'dlmodal.sourceMirror': '镜像源',
   'dlmodal.sourceDirect': 'GitHub 直连',
+
+  'versions.title': '版本历史',
+  'versions.changes': '更新说明',
+  'versions.noChanges': '无详细更新说明',
+  'versions.prerelease': '预发布',
 }
 
 const en: Record<string, string> = {
@@ -61,6 +67,7 @@ const en: Record<string, string> = {
   'nav.download': 'Download',
   'nav.docs': 'Docs',
   'nav.about': 'About',
+  'nav.versions': 'Version History',
   'nav.afdian': 'Donate',
 
   'hero.desc': 'A modern Minecraft launcher with',
@@ -100,6 +107,11 @@ const en: Record<string, string> = {
   'dlmodal.sourceProxy': 'Proxy Download (Recommended)',
   'dlmodal.sourceMirror': 'Mirror',
   'dlmodal.sourceDirect': 'GitHub Direct',
+
+  'versions.title': 'Version History',
+  'versions.changes': 'Changelog',
+  'versions.noChanges': 'No detailed changelog',
+  'versions.prerelease': 'Pre-release',
 }
 
 export function t(key: string, lang: Lang): string {
@@ -142,6 +154,16 @@ const featureDataZh = [
     desc: '细粒度管理每个实例的版本、模组、设置，掌控一切。',
     tags: ['版本管理', '模组管理', '启动参数'],
   },
+  {
+    title: '自动安装前置依赖',
+    desc: '智能检测并自动安装前置 Mod，一次点击轻松安装。',
+    tags: ['前置检测', '自动安装', '一键安装'],
+  },
+  {
+    title: '多人联机',
+    desc: '支持局域网联机，一键 NAT 穿透，与好友畅快开黑。',
+    tags: ['局域网联机', 'NAT 穿透'],
+  },
 ]
 
 const featureDataEn = [
@@ -180,6 +202,16 @@ const featureDataEn = [
     desc: 'Granular control over each instance — version, mods, launch args, and more.',
     tags: ['Version Mgmt', 'Mod Mgmt', 'Launch Args'],
   },
+  {
+    title: 'Auto Install Prerequisites',
+    desc: 'Smart detection and auto-install of prerequisite mods with a single click.',
+    tags: ['Dependency Check', 'Auto Install', 'One-Click'],
+  },
+  {
+    title: 'Multiplayer',
+    desc: 'LAN multiplayer with one-click NAT traversal for seamless play with friends.',
+    tags: ['LAN', 'NAT Traversal'],
+  },
 ]
 
 export const carouselWords: Record<Lang, string[]> = {
@@ -205,6 +237,8 @@ export function getFeatures(lang: Lang): FeatureData[] {
     '/screenshots/resource-center.png',
     '/screenshots/download-management.png',
     '/screenshots/instance-detail.png',
+    '/screenshots/download-mod.png',
+    '/screenshots/online.png',
   ]
   return data.map((d, i) => ({
     img: images[i],
