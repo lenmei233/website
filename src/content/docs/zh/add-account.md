@@ -7,20 +7,20 @@ lang: zh
 
 点击侧边栏的「账户」进入账户管理页面。Qomicex 支持三种登录方式：
 
-![账户管理页面](/tutorial/account-page.png)
+![账户管理页面](/tutorial/account-page.webp)
 
 
 # Microsoft登录
 
-![微软登录](/tutorial/account-page-microsoft.png)
+![微软登录](/tutorial/account-page-microsoft.webp)
 
 正版 Minecraft 账户。点击「Microsoft OAuth」按钮
 
-![微软登录](/tutorial/microsoft-code.png)
+![微软登录](/tutorial/microsoft-code.webp)
 
 粘贴自动复制的代码,点击「允许访问按钮」,按照流程授权
 
-![微软登录完成](/tutorial/microsoft-done.png)
+![微软登录完成](/tutorial/microsoft-done.webp)
 
 当显示这个页面时,就可以回到 Qomicex Launcher 了, Qomicex Launcher 会自动配置账户
 
@@ -29,7 +29,7 @@ lang: zh
 
 无需正版账号。输入用户名即可创建离线档案。
 
-![离线登录](/tutorial/account-offline.png)
+![离线登录](/tutorial/account-offline.webp)
 正常情况下输入你想要的用户名即可, UUID 将会自动生成，若需自定义UUID，在下方输入即可
 
 

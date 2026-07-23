@@ -238,15 +238,15 @@ export interface FeatureData {
 export function getFeatures(lang: Lang): FeatureData[] {
   const data = lang === 'en' ? featureDataEn : featureDataZh
   const images = [
-    '/screenshots/home.png',
-    '/screenshots/instances.png',
-    '/screenshots/accounts.png',
-    '/screenshots/download-instance.png',
-    '/screenshots/resource-center.png',
-    '/screenshots/download-management.png',
-    '/screenshots/instance-detail.png',
-    '/screenshots/download-mod.png',
-    '/screenshots/online.png',
+    '/screenshots/home.webp',
+    '/screenshots/instances.webp',
+    '/screenshots/accounts.webp',
+    '/screenshots/download-instance.webp',
+    '/screenshots/resource-center.webp',
+    '/screenshots/download-management.webp',
+    '/screenshots/instance-detail.webp',
+    '/screenshots/download-mod.webp',
+    '/screenshots/online.webp',
   ]
   return data.map((d, i) => ({
     img: images[i],

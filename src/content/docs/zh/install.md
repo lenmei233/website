@@ -11,7 +11,7 @@ lang: zh
 
 从[下载页面](/download)获取对应系统的安装包。
 
-![下载页面](/tutorial/download.png)
+![下载页面](/tutorial/download.webp)
 
 选择合适的系统及架构与安装包即可选择一个下载源进行下载，国内推荐第一个和第二个，国外推荐第三个
 
