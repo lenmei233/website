@@ -3,6 +3,7 @@ name: Auto Redeploy Vercel
 on:
   schedule:
     # 每隔 6 小时执行一次（UTC时间）
+    # 北京时间 8:00, 14:00, 20:00, 2:00
     - cron: '0 */6 * * *'
   # 手动触发
   workflow_dispatch:
@@ -16,4 +17,16 @@ jobs:
           curl -X POST \
             "${{ secrets.VERCEL_DEPLOY_HOOK }}" \
             -H "Content-Type: application/json" \
-            -d '{}'
+            -d '{}' \
+            --fail \
+            --silent \
+            --show-error \
+            --max-time 30
+        
+        timeout-minutes: 1
+        
+      - name: Check deployment status
+        if: failure()
+        run: |
+          echo "Deployment hook failed. Please check your VERCEL_DEPLOY_HOOK secret."
+          exit 1
